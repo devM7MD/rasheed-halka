@@ -1,0 +1,412 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}المكافآت والحوافز - {{ student.full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reward-progress {
+        width: 100px;
+        height: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">المكافآت والحوافز</h2>
+            <div>
+                <a href="{% url 'add_reward' student_id=student.id %}" class="btn btn-light btn-sm ml-2">
+                    <i class="fas fa-plus ml-1"></i> إضافة مكافأة جديدة
+                </a>
+                <a href="{% url 'student_detail' pk=student.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-user ml-1"></i> ملف الطالب
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        {% if student.photo %}
+                        <img src="{{ student.photo.url }}" alt="{{ student.full_name }}" class="rounded-circle ml-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center ml-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="mb-0">{{ student.full_name }}</h3>
+                            <p class="text-muted mb-0">{{ student.get_level_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end align-items-center">
+                        <div class="text-center ml-4">
+                            <h5 class="mb-1">إجمالي النقاط</h5>
+                            <div class="display-4 text-success">{{ total_points }}</div>
+                        </div>
+                        <div class="text-center">
+                            <h5 class="mb-1">عدد المكافآت</h5>
+                            <div class="display-4 text-primary">{{ rewards|length }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- نظام المكافآت والنقاط -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">نظام المكافآت والنقاط</h5>
+                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#pointsSystemModal">
+                        <i class="fas fa-info-circle ml-1"></i> معلومات عن النظام
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- أنواع النقاط والمكافآت -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">أنواع النقاط المكتسبة</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            حفظ جديد
+                                            <span class="badge bg-primary rounded-pill">{{ point_types.memorization }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            إتقان المراجعة
+                                            <span class="badge bg-success rounded-pill">{{ point_types.review }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            الالتزام والحضور
+                                            <span class="badge bg-info rounded-pill">{{ point_types.attendance }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            السلوك المتميز
+                                            <span class="badge bg-warning rounded-pill">{{ point_types.behavior }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            أنشطة إضافية
+                                            <span class="badge bg-secondary rounded-pill">{{ point_types.activities }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- المكافآت المقبلة -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0">المكافآت القادمة</h6>
+                                </div>
+                                <div class="card-body">
+                                    {% if upcoming_rewards %}
+                                    <ul class="list-group list-group-flush">
+                                        {% for reward in upcoming_rewards %}
+                                        <li class="list-group-item">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h6 class="mb-1">{{ reward.name }}</h6>
+                                                    <small class="text-muted">{{ reward.description }}</small>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="badge bg-primary">{{ reward.points_required }} نقطة</div>
+                                                    <div class="progress mt-1 reward-progress">
+                                                        <div class="progress-bar bg-success" role="progressbar" aria-valuenow="{{ reward.progress }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ reward.progress }}%"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% else %}
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle ml-2"></i>
+                                        لا توجد مكافآت قادمة في هذه المرحلة.
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- نموذج إضافة نقاط -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">إضافة نقاط</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'add_points' student_id=student.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="points_type" class="form-label">نوع النقاط:</label>
+                                <select id="points_type" name="points_type" class="form-select" required>
+                                    <option value="" selected disabled>-- اختر نوع النقاط --</option>
+                                    <option value="memorization">حفظ جديد</option>
+                                    <option value="review">إتقان المراجعة</option>
+                                    <option value="attendance">الالتزام والحضور</option>
+                                    <option value="behavior">السلوك المتميز</option>
+                                    <option value="activities">أنشطة إضافية</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="points_amount" class="form-label">عدد النقاط:</label>
+                                <input type="number" id="points_amount" name="points_amount" min="1" max="100" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">سبب منح النقاط:</label>
+                            <input type="text" id="reason" name="reason" class="form-control" required>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-plus-circle ml-1"></i> إضافة النقاط
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- سجل المكافآت -->
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">سجل المكافآت والنقاط</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-primary active" id="all-btn">الكل</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="points-btn">النقاط</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="rewards-btn">المكافآت</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if rewards %}
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="rewards-table">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>النوع</th>
+                                    <th>الوصف</th>
+                                    <th>النقاط</th>
+                                    <th>المعلم</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in rewards %}
+                                <tr class="reward-row {% if item.is_point %}point-row{% else %}reward-item-row{% endif %}">
+                                    <td>{{ item.date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        {% if item.is_point %}
+                                            {% if item.points_type == 'memorization' %}
+                                            <span class="badge bg-primary">حفظ جديد</span>
+                                            {% elif item.points_type == 'review' %}
+                                            <span class="badge bg-success">إتقان المراجعة</span>
+                                            {% elif item.points_type == 'attendance' %}
+                                            <span class="badge bg-info">الالتزام والحضور</span>
+                                            {% elif item.points_type == 'behavior' %}
+                                            <span class="badge bg-warning">السلوك المتميز</span>
+                                            {% elif item.points_type == 'activities' %}
+                                            <span class="badge bg-secondary">أنشطة إضافية</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge bg-danger">مكافأة</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.description }}</td>
+                                    <td>
+                                        {% if item.is_point %}
+                                        <span class="text-success">+{{ item.points }}</span>
+                                        {% else %}
+                                        <span class="text-danger">-{{ item.points_cost }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.teacher.full_name }}</td>
+                                    <td>
+                                        {% if item.notes %}
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="{{ item.notes }}">
+                                                <i class="fas fa-sticky-note"></i>
+                                            </button>
+                                        {% else %}
+                                            —
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle ml-2"></i>
+                        لا توجد مكافآت أو نقاط مسجلة لهذا الطالب.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: شرح نظام النقاط -->
+<div class="modal fade" id="pointsSystemModal" tabindex="-1" aria-labelledby="pointsSystemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="pointsSystemModalLabel">نظام النقاط والمكافآت</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-primary mb-3">طرق كسب النقاط:</h6>
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>النشاط</th>
+                                <th>النقاط</th>
+                                <th>الوصف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>حفظ جديد</td>
+                                <td>5-20</td>
+                                <td>عند إتمام حفظ جزء جديد من القرآن بإتقان</td>
+                            </tr>
+                            <tr>
+                                <td>إتقان المراجعة</td>
+                                <td>3-15</td>
+                                <td>عند إتقان مراجعة الأجزاء السابقة</td>
+                            </tr>
+                            <tr>
+                                <td>الالتزام بالحضور</td>
+                                <td>5-10</td>
+                                <td>الحضور المنتظم لمدة أسبوع أو شهر دون انقطاع</td>
+                            </tr>
+                            <tr>
+                                <td>السلوك المتميز</td>
+                                <td>2-10</td>
+                                <td>احترام المعلمين والزملاء، والالتزام بالآداب</td>
+                            </tr>
+                            <tr>
+                                <td>أنشطة إضافية</td>
+                                <td>3-15</td>
+                                <td>المشاركة في المسابقات والأنشطة الإضافية</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <h6 class="text-primary mb-3">المكافآت المتاحة:</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>المكافأة</th>
+                                <th>النقاط المطلوبة</th>
+                                <th>الوصف</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>شهادة تقدير</td>
+                                <td>30</td>
+                                <td>شهادة تقدير موقعة من مدير الحلقة</td>
+                            </tr>
+                            <tr>
+                                <td>هدية رمزية</td>
+                                <td>50</td>
+                                <td>هدية رمزية (كتاب، قلم، مصحف)</td>
+                            </tr>
+                            <tr>
+                                <td>رحلة ترفيهية</td>
+                                <td>100</td>
+                                <td>المشاركة في رحلة ترفيهية مع الحلقة</td>
+                            </tr>
+                            <tr>
+                                <td>جائزة القارئ المتميز</td>
+                                <td>200</td>
+                                <td>جائزة شهرية للطلاب المتميزين</td>
+                            </tr>
+                            <tr>
+                                <td>يوم مفتوح مع الأسرة</td>
+                                <td>300</td>
+                                <td>المشاركة في يوم مفتوح مع أسرة الطالب</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // تهيئة tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // فلترة جدول المكافآت
+        document.getElementById('all-btn').addEventListener('click', function() {
+            document.querySelectorAll('.reward-row').forEach(function(row) {
+                row.style.display = '';
+            });
+            // تحديث الأزرار النشطة
+            updateActiveFilterButton('all-btn');
+        });
+        
+        document.getElementById('points-btn').addEventListener('click', function() {
+            document.querySelectorAll('.reward-row').forEach(function(row) {
+                if (row.classList.contains('point-row')) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            // تحديث الأزرار النشطة
+            updateActiveFilterButton('points-btn');
+        });
+        
+        document.getElementById('rewards-btn').addEventListener('click', function() {
+            document.querySelectorAll('.reward-row').forEach(function(row) {
+                if (row.classList.contains('reward-item-row')) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            // تحديث الأزرار النشطة
+            updateActiveFilterButton('rewards-btn');
+        });
+        
+        function updateActiveFilterButton(activeId) {
+            document.querySelectorAll('#all-btn, #points-btn, #rewards-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.getElementById(activeId).classList.add('active');
+        }
+    });
+</script>
+{% endblock %} 

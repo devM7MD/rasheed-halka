@@ -1,0 +1,98 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title">{{ title }}</h2>
+        </div>
+        
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">الرجاء تصحيح الأخطاء التالية:</h4>
+                    {{ form.errors }}
+                </div>
+                {% endif %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">معلومات التقييم</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="student" class="form-label">الطالب:</label>
+                                    <select name="student" id="student" class="form-select" {% if student %}disabled{% endif %}>
+                                        {% for student_option in students %}
+                                        <option value="{{ student_option.id }}" {% if student and student.id == student_option.id %}selected{% elif evaluation and evaluation.student.id == student_option.id %}selected{% endif %}>{{ student_option.full_name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    {% if student %}
+                                    <input type="hidden" name="student" value="{{ student.id }}">
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="date" class="form-label">تاريخ التقييم:</label>
+                                    <input type="date" id="date" name="date" class="form-control" value="{{ evaluation.date|date:'Y-m-d' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">الدرجات</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="old_memorization_score" class="form-label">درجة المراجعة (0-10):</label>
+                                    <input type="number" id="old_memorization_score" name="old_memorization_score" class="form-control" min="0" max="10" value="{{ evaluation.old_memorization_score }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_memorization_score" class="form-label">درجة الحفظ الجديد (0-10):</label>
+                                    <input type="number" id="new_memorization_score" name="new_memorization_score" class="form-control" min="0" max="10" value="{{ evaluation.new_memorization_score }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="behavior_score" class="form-label">درجة السلوك (0-10):</label>
+                                    <input type="number" id="behavior_score" name="behavior_score" class="form-control" min="0" max="10" value="{{ evaluation.behavior_score }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="activity_score" class="form-label">درجة النشاط (0-10):</label>
+                                    <input type="number" id="activity_score" name="activity_score" class="form-control" min="0" max="10" value="{{ evaluation.activity_score }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="comments" class="form-label">ملاحظات:</label>
+                    <textarea id="comments" name="comments" class="form-control" rows="3">{{ evaluation.comments }}</textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'evaluation_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right ml-1"></i> العودة
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save ml-1"></i> حفظ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

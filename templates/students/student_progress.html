@@ -1,0 +1,225 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}تقرير تقدم الطالب - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">تقرير تقدم الطالب</h2>
+            <div>
+                <a href="{% url 'student_detail' pk=student.id %}" class="btn btn-light btn-sm ml-2">
+                    <i class="fas fa-user ml-1"></i> ملف الطالب
+                </a>
+                <a href="{% url 'student_list' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-list ml-1"></i> قائمة الطلاب
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        {% if student.photo %}
+                        <img src="{{ student.photo.url }}" alt="{{ student.full_name }}" class="rounded-circle ml-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center ml-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="mb-0">{{ student.full_name }}</h3>
+                            <p class="text-muted mb-0">{{ student.get_level_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end">
+                        <div class="text-center ml-4">
+                            <h5 class="mb-1">نسبة الحفظ الكلية</h5>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ memorization_percentage }}%;" 
+                                    aria-valuenow="{{ memorization_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                    {{ memorization_percentage }}%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- خلاصة التقدم -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">ملخص التقدم</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card border-primary h-100">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 text-primary">{{ total_memorized_ayahs }}</h1>
+                                    <p class="mb-0">إجمالي الآيات المحفوظة</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card border-success h-100">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 text-success">{{ total_surahs_completed }}</h1>
+                                    <p class="mb-0">السور المكتملة</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card border-info h-100">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 text-info">{{ avg_daily_rate|floatformat:1 }}</h1>
+                                    <p class="mb-0">متوسط الحفظ اليومي</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card border-warning h-100">
+                                <div class="card-body text-center">
+                                    <h1 class="display-4 text-warning">{{ days_active }}</h1>
+                                    <p class="mb-0">أيام الحضور</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- رسم بياني للتقدم -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">رسم بياني للتقدم</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="progressChart" height="100"></canvas>
+                </div>
+            </div>
+            
+            <!-- تقدم السور -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between">
+                    <h5 class="card-title mb-0">تقدم السور</h5>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="showAllSurahs">
+                        <label class="form-check-label" for="showAllSurahs">عرض جميع السور</label>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="surahProgressContainer">
+                        {% for surah in surahs_progress %}
+                        <div class="col-md-6 mb-3 surah-item {% if not surah.has_progress %}d-none empty-surah{% endif %}">
+                            <div class="card">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">{{ surah.number }}. {{ surah.name }}</h6>
+                                        <span class="badge {% if surah.completed %}bg-success{% else %}bg-warning{% endif %}">
+                                            {{ surah.memorized_ayahs }}/{{ surah.total_ayahs }}
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 15px;">
+                                        <div class="progress-bar bg-success" role="progressbar" 
+                                            style="width: {{ surah.percentage }}%;" 
+                                            aria-valuenow="{{ surah.percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                            {{ surah.percentage }}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- آخر التقييمات -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">آخر التقييمات</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_evaluations %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>المحتوى</th>
+                                    <th>الدرجة</th>
+                                    <th>ملاحظات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for eval in recent_evaluations %}
+                                <tr>
+                                    <td>{{ eval.date|date:"Y-m-d" }}</td>
+                                    <td>سورة {{ eval.surah_name }}: {{ eval.ayah_start }} - {{ eval.ayah_end }}</td>
+                                    <td>
+                                        <span class="badge {% if eval.score >= 8 %}bg-success{% elif eval.score >= 6 %}bg-warning{% else %}bg-danger{% endif %}">
+                                            {{ eval.score }}/10
+                                        </span>
+                                    </td>
+                                    <td>{{ eval.notes|default:"—" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        لا توجد تقييمات حديثة لهذا الطالب.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // رسم بياني للتقدم
+        var ctx = document.getElementById('progressChart').getContext('2d');
+        var progressChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ chart_dates|safe }},
+                datasets: [{
+                    label: 'الآيات المحفوظة',
+                    data: {{ chart_values|safe }},
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // تبديل عرض السور
+        document.getElementById('showAllSurahs').addEventListener('change', function() {
+            var emptySurahs = document.querySelectorAll('.empty-surah');
+            emptySurahs.forEach(function(surah) {
+                surah.classList.toggle('d-none', !this.checked);
+            }, this);
+        });
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+{% load plan_tags %}
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>الخطة الأسبوعية - {{ student.full_name }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="text-align: center; color: #05668D;">الخطة الأسبوعية للحفظ والمراجعة</h1>
+        </div>
+        
+        <div class="student-info">
+            <table style="width: 100%;">
+                <tr>
+                    <td style="width: 50%;">
+                        <strong>اسم الطالب:</strong> {{ student.full_name }}
+                    </td>
+                    <td>
+                        <strong>الفترة:</strong> {{ plan.week_start|date:"Y-m-d" }} - {{ plan.week_end|date:"Y-m-d" }}
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>المعلم:</strong> الأستاذ رشيد الهبشي
+                    </td>
+                    <td>
+                        <strong>الحفظ اليومي:</strong> {{ plan.target_ayahs_per_day }} آية
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <strong>الهاتف:</strong> {{ student.phone_number|default:"غير متوفر" }}
+                    </td>
+                    <td>
+                        <strong>البريد الإلكتروني:</strong> {{ student.email|default:"غير متوفر" }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <h2 style="color: #05668D;">مهام الطالب اليومية</h2>
+            
+            {% if daily_tasks %}
+            <table class="plan-table">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">اليوم</th>
+                        <th style="width: 10%;">التاريخ</th>
+                        <th style="width: 25%;">الحفظ الجديد</th>
+                        <th style="width: 10%;">تقييم</th>
+                        <th style="width: 25%;">المراجعة</th>
+                        <th style="width: 10%;">تقييم</th>
+                        <th style="width: 10%;">دروس أخرى</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% with days_count=4 %}
+                    {% for day in days_count|get_range %}
+                        {% with day_date=plan.week_start|add_days:day %}
+                            <tr>
+                                <td>
+                                    {% if day == 0 %}
+                                        الاثنين
+                                    {% elif day == 1 %}
+                                        الثلاثاء
+                                    {% elif day == 2 %}
+                                        الأربعاء
+                                    {% elif day == 3 %}
+                                        الخميس
+                                    {% endif %}
+                                </td>
+                                <td>{{ day_date|date:"Y-m-d" }}</td>
+                                
+                                <!-- الحفظ الجديد -->
+                                <td>
+                                    {% for task in daily_tasks %}
+                                        {% if task.date|date:"Y-m-d" == day_date|date:"Y-m-d" and task.task_type == 'new' %}
+                                            {% if task.surah_start == 1 %}سورة الفاتحة
+                                            {% elif task.surah_start == 2 %}سورة البقرة
+                                            {% elif task.surah_start == 3 %}سورة آل عمران
+                                            {% elif task.surah_start == 4 %}سورة النساء
+                                            {% elif task.surah_start == 5 %}سورة المائدة
+                                            {% elif task.surah_start == 6 %}سورة الأنعام
+                                            {% elif task.surah_start == 7 %}سورة الأعراف
+                                            {% elif task.surah_start == 8 %}سورة الأنفال
+                                            {% elif task.surah_start == 9 %}سورة التوبة
+                                            {% elif task.surah_start == 10 %}سورة يونس
+                                            {% elif task.surah_start == 11 %}سورة هود
+                                            {% elif task.surah_start == 12 %}سورة يوسف
+                                            {% elif task.surah_start == 13 %}سورة الرعد
+                                            {% elif task.surah_start == 14 %}سورة إبراهيم
+                                            {% elif task.surah_start == 15 %}سورة الحجر
+                                            {% elif task.surah_start == 16 %}سورة النحل
+                                            {% elif task.surah_start == 17 %}سورة الإسراء
+                                            {% elif task.surah_start == 18 %}سورة الكهف
+                                            {% elif task.surah_start == 19 %}سورة مريم
+                                            {% elif task.surah_start == 20 %}سورة طه
+                                            {% elif task.surah_start > 20 %}سورة {{ task.surah_start }}
+                                            {% else %}{{ task.surah_start }}
+                                            {% endif %}: الآيات {{ task.ayah_start }} - {{ task.ayah_end }}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                                
+                                <!-- تقييم الحفظ الجديد -->
+                                <td style="border: 1px solid #000; min-height: 40px;">
+                                    &nbsp;
+                                </td>
+                                
+                                <!-- المراجعة -->
+                                <td>
+                                    {% with has_review=False %}
+                                        {% for task in daily_tasks %}
+                                            {% if task.date|date:"Y-m-d" == day_date|date:"Y-m-d" and task.task_type == 'review' %}
+                                                {% if task.surah_start == 1 %}سورة الفاتحة
+                                                {% elif task.surah_start == 2 %}سورة البقرة
+                                                {% elif task.surah_start == 3 %}سورة آل عمران
+                                                {% elif task.surah_start == 4 %}سورة النساء
+                                                {% elif task.surah_start == 5 %}سورة المائدة
+                                                {% elif task.surah_start == 6 %}سورة الأنعام
+                                                {% elif task.surah_start == 7 %}سورة الأعراف
+                                                {% elif task.surah_start == 8 %}سورة الأنفال
+                                                {% elif task.surah_start == 9 %}سورة التوبة
+                                                {% elif task.surah_start == 10 %}سورة يونس
+                                                {% elif task.surah_start == 11 %}سورة هود
+                                                {% elif task.surah_start == 12 %}سورة يوسف
+                                                {% elif task.surah_start == 13 %}سورة الرعد
+                                                {% elif task.surah_start == 14 %}سورة إبراهيم
+                                                {% elif task.surah_start == 15 %}سورة الحجر
+                                                {% elif task.surah_start == 16 %}سورة النحل
+                                                {% elif task.surah_start == 17 %}سورة الإسراء
+                                                {% elif task.surah_start == 18 %}سورة الكهف
+                                                {% elif task.surah_start == 19 %}سورة مريم
+                                                {% elif task.surah_start == 20 %}سورة طه
+                                                {% elif task.surah_start > 20 %}سورة {{ task.surah_start }}
+                                                {% else %}{{ task.surah_start }}
+                                                {% endif %}: الآيات {{ task.ayah_start }} - {{ task.ayah_end }}
+                                                {% with has_review=True %}{% endwith %}
+                                            {% endif %}
+                                        {% endfor %}
+
+                                        {% if not has_review %}
+                                            <span style="color: #777;">لا توجد مراجعة محددة</span>
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                
+                                <!-- تقييم المراجعة -->
+                                <td style="border: 1px solid #000; min-height: 40px;">
+                                    &nbsp;
+                                </td>
+                                
+                                <!-- دروس أخرى -->
+                                <td>
+                                    {% for task in daily_tasks %}
+                                        {% if task.date|date:"Y-m-d" == day_date|date:"Y-m-d" and task.task_type != 'new' and task.task_type != 'review' %}
+                                            {% if task.task_type == 'tajweed' %}
+                                                <span style="color: #6610f2; font-weight: bold;">تجويد</span>
+                                            {% elif task.task_type == 'fiqh' %}
+                                                <span style="color: #fd7e14; font-weight: bold;">فقه العبادات</span>
+                                            {% elif task.task_type == 'jibal' %}
+                                                <span style="color: #6c757d; font-weight: bold;">يا جبال أوبي</span>
+                                            {% else %}
+                                                <span style="color: #343a40; font-weight: bold;">{{ task.get_task_type_display }}</span>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endwith %}
+                    {% endfor %}
+                    {% endwith %}
+                </tbody>
+            </table>
+            {% else %}
+            <div style="text-align: center; padding: 20px; background-color: #f8d7da; color: #721c24; border-radius: 5px;">
+                لا توجد مهام مسجلة في هذه الخطة
+            </div>
+            {% endif %}
+        </div>
+        
+        <div style="margin-top: 10px;">
+            <h3 style="color: #05668D; font-size: 16px;">مقياس التقييم:</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 5px;">
+                <tr>
+                    <td style="width: 20%; border: 1px solid #ddd; padding: 5px; text-align: center;">
+                        <strong>5</strong> - ممتاز (بدون أخطاء)
+                    </td>
+                    <td style="width: 20%; border: 1px solid #ddd; padding: 5px; text-align: center;">
+                        <strong>4</strong> - جيد جداً (1-2 أخطاء)
+                    </td>
+                    <td style="width: 20%; border: 1px solid #ddd; padding: 5px; text-align: center;">
+                        <strong>3</strong> - جيد (3-4 أخطاء)
+                    </td>
+                    <td style="width: 20%; border: 1px solid #ddd; padding: 5px; text-align: center;">
+                        <strong>2</strong> - مقبول (5-7 أخطاء)
+                    </td>
+                    <td style="width: 20%; border: 1px solid #ddd; padding: 5px; text-align: center;">
+                        <strong>1</strong> - ضعيف (أكثر من 7 أخطاء)
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 10px; border-top: 1px dashed #aaa;">
+            <h3 style="color: #05668D;">توجيهات هامة للطالب والأهل:</h3>
+            <ol>
+                <li>الالتزام بالحفظ والمراجعة اليومية وفق الخطة.</li>
+                <li>الحرص على مراجعة الحفظ السابق بانتظام.</li>
+                <li>متابعة الأهل للطالب في حفظ ومراجعة المقرر اليومي.</li>
+                <li>الاهتمام بالتجويد وصحة القراءة.</li>
+                <li>التواصل مع المعلم في حال وجود أي استفسار أو ملاحظة.</li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <div style="display: inline-block; margin: 0 20px; text-align: center;">
+                <div style="border-bottom: 1px solid #000; width: 150px; margin-bottom: 5px;">&nbsp;</div>
+                <div>توقيع الطالب</div>
+            </div>
+            <div style="display: inline-block; margin: 0 20px; text-align: center;">
+                <div style="border-bottom: 1px solid #000; width: 150px; margin-bottom: 5px;">&nbsp;</div>
+                <div>توقيع ولي الأمر</div>
+            </div>
+            <div style="display: inline-block; margin: 0 20px; text-align: center;">
+                <div style="border-bottom: 1px solid #000; width: 150px; margin-bottom: 5px;">&nbsp;</div>
+                <div>توقيع المعلم</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

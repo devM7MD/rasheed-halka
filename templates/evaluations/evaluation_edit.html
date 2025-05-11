@@ -1,0 +1,138 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}تعديل التقييم - {{ evaluation.student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title">تعديل تقييم الطالب: {{ evaluation.student.full_name }}</h2>
+        </div>
+        
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">الرجاء تصحيح الأخطاء التالية:</h4>
+                    {{ form.errors }}
+                </div>
+                {% endif %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">معلومات التقييم</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">الطالب:</label>
+                                    <input type="text" class="form-control" value="{{ evaluation.student.full_name }}" readonly>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">تاريخ التقييم:</label>
+                                    <input type="text" class="form-control" value="{{ evaluation.date|date:'Y-m-d' }}" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">الدرجات</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="old_memorization_score" class="form-label">درجة المراجعة (0-10):</label>
+                                    <input type="number" id="old_memorization_score" name="old_memorization_score" class="form-control" min="0" max="10" value="{{ evaluation.old_memorization_score }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_memorization_score" class="form-label">درجة الحفظ الجديد (0-10):</label>
+                                    <input type="number" id="new_memorization_score" name="new_memorization_score" class="form-control" min="0" max="10" value="{{ evaluation.new_memorization_score }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="behavior_score" class="form-label">درجة السلوك (0-10):</label>
+                                    <input type="number" id="behavior_score" name="behavior_score" class="form-control" min="0" max="10" value="{{ evaluation.behavior_score }}" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="activity_score" class="form-label">درجة النشاط (0-10):</label>
+                                    <input type="number" id="activity_score" name="activity_score" class="form-control" min="0" max="10" value="{{ evaluation.activity_score }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="comments" class="form-label">ملاحظات:</label>
+                    <textarea id="comments" name="comments" class="form-control" rows="3">{{ evaluation.comments }}</textarea>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'evaluation_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right ml-1"></i> العودة
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save ml-1"></i> حفظ التغييرات
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header bg-light">
+            <h5 class="card-title mb-0">معلومات إضافية</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">المجموع الكلي</h6>
+                            <h3 class="text-primary">{{ evaluation.get_total_score }} / 40</h3>
+                            <div class="progress mt-2">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ evaluation.get_percentage }}%" aria-valuenow="{{ evaluation.get_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ evaluation.get_percentage|floatformat }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">التقدير العام</h6>
+                            <h3 class="
+                            {% if evaluation.get_final_grade == 'Excellent' %}text-success
+                            {% elif evaluation.get_final_grade == 'Very Good' %}text-primary
+                            {% elif evaluation.get_final_grade == 'Good' %}text-info
+                            {% elif evaluation.get_final_grade == 'Acceptable' %}text-warning
+                            {% else %}text-danger{% endif %}">
+                                {{ evaluation.get_final_grade }}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">أداء الحفظ</h6>
+                            <h3 class="text-info">{{ evaluation.get_memorization_score }} / 20</h3>
+                            <div class="progress mt-2">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: {{ evaluation.get_memorization_percentage }}%" aria-valuenow="{{ evaluation.get_memorization_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ evaluation.get_memorization_percentage|floatformat }}%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

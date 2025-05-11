@@ -1,0 +1,407 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل خطة الحفظ - {{ plan.student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">تفاصيل خطة الحفظ</h2>
+            <div>
+                <a href="{% url 'export_plan' plan_id=plan.id %}" class="btn btn-light ml-2" target="_blank">
+                    <i class="fas fa-download ml-1"></i> تصدير للأهالي
+                </a>
+                <button type="button" class="btn btn-success ml-2" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                    <i class="fas fa-plus-circle ml-1"></i> إضافة مهمة
+                </button>
+                <a href="{% url 'plan_cancel' plan_id=plan.id %}" class="btn btn-danger">
+                    <i class="fas fa-trash ml-1"></i> حذف الخطة
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="alert alert-info mb-4">
+                <h5><i class="fas fa-info-circle ml-2"></i> دليل استخدام خطة الحفظ</h5>
+                <hr>
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-plus-circle ml-1"></i> إضافة مهام مختلفة:</h6>
+                        <ul>
+                            <li>يمكنك إضافة مهام مختلفة مثل: الحفظ، المراجعة، التجويد، فقه العبادات، يا جبال أوبي، أو دروس مخصصة</li>
+                            <li>اضغط على زر "إضافة مهمة" واختر نوع المهمة المناسب</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-exchange-alt ml-1"></i> إلغاء مهام الحفظ وإضافة دروس بديلة:</h6>
+                        <ul>
+                            <li>لإلغاء مهمة حفظ في يوم معين، اضغط على "تحديث" وغيّر حالتها إلى "ملغي"</li>
+                            <li>ثم أضف مهمة جديدة (مثل درس تجويد أو فقه) لنفس اليوم</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6 class="text-primary"><i class="fas fa-download ml-1"></i> تصدير الخطة للأهالي:</h6>
+                        <ul>
+                            <li>يمكنك تصدير الخطة بتنسيق PDF لإرسالها للأهالي عبر زر "تصدير للأهالي"</li>
+                            <li>يحتوي الملف المصدر على معلومات الطالب والمهام اليومية وأماكن للتوقيع</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="text-primary">الطالب</h5>
+                    <p class="lead">
+                        {% if plan.student.photo %}
+                        <img src="{{ plan.student.photo.url }}" alt="{{ plan.student.full_name }}" class="rounded-circle mr-2" style="width: 30px; height: 30px; object-fit: cover;">
+                        {% else %}
+                        <i class="fas fa-user-circle mr-2"></i>
+                        {% endif %}
+                        {{ plan.student.full_name }}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <h5 class="text-primary">فترة الخطة</h5>
+                    <p class="lead">{{ plan.week_start|date:"Y-m-d" }} إلى {{ plan.week_end|date:"Y-m-d" }}</p>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <h5 class="text-primary">السورة الحالية</h5>
+                    <p class="lead">
+                        {% if plan.current_surah == 1 %}الفاتحة
+                        {% elif plan.current_surah == 2 %}البقرة
+                        {% elif plan.current_surah == 3 %}آل عمران
+                        {% elif plan.current_surah == 4 %}النساء
+                        {% elif plan.current_surah == 5 %}المائدة
+                        {% elif plan.current_surah == 6 %}الأنعام
+                        {% elif plan.current_surah == 7 %}الأعراف
+                        {% elif plan.current_surah == 8 %}الأنفال
+                        {% elif plan.current_surah == 9 %}التوبة
+                        {% elif plan.current_surah == 10 %}يونس
+                        {% elif plan.current_surah == 11 %}هود
+                        {% elif plan.current_surah == 12 %}يوسف
+                        {% elif plan.current_surah == 13 %}الرعد
+                        {% elif plan.current_surah == 14 %}إبراهيم
+                        {% elif plan.current_surah == 15 %}الحجر
+                        {% elif plan.current_surah == 16 %}النحل
+                        {% elif plan.current_surah == 17 %}الإسراء
+                        {% elif plan.current_surah == 18 %}الكهف
+                        {% elif plan.current_surah == 19 %}مريم
+                        {% elif plan.current_surah == 20 %}طه
+                        {% elif plan.current_surah == 21 %}الأنبياء
+                        {% elif plan.current_surah == 22 %}الحج
+                        {% elif plan.current_surah == 23 %}المؤمنون
+                        {% elif plan.current_surah == 24 %}النور
+                        {% elif plan.current_surah == 25 %}الفرقان
+                        {% elif plan.current_surah == 26 %}الشعراء
+                        {% elif plan.current_surah == 27 %}النمل
+                        {% elif plan.current_surah == 28 %}القصص
+                        {% elif plan.current_surah == 29 %}العنكبوت
+                        {% elif plan.current_surah == 30 %}الروم
+                        {% elif plan.current_surah == 31 %}لقمان
+                        {% elif plan.current_surah == 32 %}السجدة
+                        {% elif plan.current_surah == 33 %}الأحزاب
+                        {% elif plan.current_surah == 34 %}سبأ
+                        {% elif plan.current_surah == 35 %}فاطر
+                        {% elif plan.current_surah == 36 %}يس
+                        {% elif plan.current_surah == 37 %}الصافات
+                        {% elif plan.current_surah == 38 %}ص
+                        {% elif plan.current_surah == 39 %}الزمر
+                        {% elif plan.current_surah == 40 %}غافر
+                        {% elif plan.current_surah > 40 and plan.current_surah <= 114 %}سورة {{ plan.current_surah }}
+                        {% else %}{{ plan.current_surah }}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-primary">الآية الحالية</h5>
+                    <p class="lead">{{ plan.current_ayah }}</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="text-primary">الهدف اليومي</h5>
+                    <p class="lead">{{ plan.target_ayahs_per_day }} آية</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">مهام خطة الحفظ اليومية</h5>
+                </div>
+                <div class="card-body">
+                    {% if daily_tasks %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>نوع المهمة</th>
+                                    <th>التفاصيل</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in daily_tasks %}
+                                <tr>
+                                    <td>{{ task.date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        {% if task.task_type == 'new' %}
+                                            <span class="badge bg-primary">حفظ جديد</span>
+                                        {% elif task.task_type == 'review' %}
+                                            <span class="badge bg-success">مراجعة</span>
+                                        {% elif task.task_type == 'tajweed' %}
+                                            <span class="badge bg-info">تجويد</span>
+                                        {% elif task.task_type == 'fiqh' %}
+                                            <span class="badge bg-warning">فقه العبادات</span>
+                                        {% elif task.task_type == 'jibal' %}
+                                            <span class="badge bg-secondary">يا جبال أوبي</span>
+                                        {% else %}
+                                            <span class="badge bg-dark">{{ task.get_task_type_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if task.task_type == 'new' or task.task_type == 'review' %}
+                                            {% if task.surah_start == 1 %}سورة الفاتحة
+                                            {% elif task.surah_start == 2 %}سورة البقرة
+                                            {% elif task.surah_start == 3 %}سورة آل عمران
+                                            {% elif task.surah_start == 4 %}سورة النساء
+                                            {% elif task.surah_start == 5 %}سورة المائدة
+                                            {% elif task.surah_start == 6 %}سورة الأنعام
+                                            {% elif task.surah_start == 7 %}سورة الأعراف
+                                            {% elif task.surah_start == 8 %}سورة الأنفال
+                                            {% elif task.surah_start == 9 %}سورة التوبة
+                                            {% elif task.surah_start == 10 %}سورة يونس
+                                            {% elif task.surah_start == 11 %}سورة هود
+                                            {% elif task.surah_start == 12 %}سورة يوسف
+                                            {% elif task.surah_start == 13 %}سورة الرعد
+                                            {% elif task.surah_start == 14 %}سورة إبراهيم
+                                            {% elif task.surah_start == 15 %}سورة الحجر
+                                            {% elif task.surah_start == 16 %}سورة النحل
+                                            {% elif task.surah_start == 17 %}سورة الإسراء
+                                            {% elif task.surah_start == 18 %}سورة الكهف
+                                            {% elif task.surah_start == 19 %}سورة مريم
+                                            {% elif task.surah_start == 20 %}سورة طه
+                                            {% elif task.surah_start > 20 %}سورة {{ task.surah_start }}
+                                            {% else %}{{ task.surah_start }}
+                                            {% endif %}: الآيات {{ task.ayah_start }} - {{ task.ayah_end }}
+                                        {% else %}
+                                            {{ task.description|default:"لا يوجد وصف" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if task.status == 'completed' %}
+                                            <span class="badge bg-success">مكتمل</span>
+                                        {% elif task.status == 'in_progress' %}
+                                            <span class="badge bg-warning">قيد التنفيذ</span>
+                                        {% elif task.status == 'canceled' %}
+                                            <span class="badge bg-danger">ملغي</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">معلق</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#updateTask{{ task.id }}">
+                                            <i class="fas fa-edit"></i> تحديث
+                                        </button>
+                                        
+                                        <!-- Modal for Task Update -->
+                                        <div class="modal fade" id="updateTask{{ task.id }}" tabindex="-1">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <form action="{% url 'task_update' task_id=task.id %}" method="POST">
+                                                        {% csrf_token %}
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">تحديث حالة المهمة</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <div class="mb-3">
+                                                                <label for="status{{ task.id }}" class="form-label">الحالة:</label>
+                                                                <select name="status" id="status{{ task.id }}" class="form-control">
+                                                                    <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>معلق</option>
+                                                                    <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>قيد التنفيذ</option>
+                                                                    <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>مكتمل</option>
+                                                                    <option value="canceled" {% if task.status == 'canceled' %}selected{% endif %}>ملغي</option>
+                                                                </select>
+                                                            </div>
+                                                            <div class="mb-3">
+                                                                <label for="comments{{ task.id }}" class="form-label">ملاحظات:</label>
+                                                                <textarea name="comments" id="comments{{ task.id }}" class="form-control" rows="3">{{ task.comments }}</textarea>
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                                            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- End Modal -->
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        لا توجد مهام مسجلة في هذه الخطة
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for Adding New Task -->
+    <div class="modal fade" id="addTaskModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form action="{% url 'task_add' plan_id=plan.id %}" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header">
+                        <h5 class="modal-title">إضافة مهمة جديدة</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info" id="reviewNote" style="display: none;">
+                            <i class="fas fa-info-circle ml-1"></i>
+                            <small>ملاحظة: إذا كان الطالب في بداية حفظه، فأنت تقوم بإضافة مهمة مراجعة يدوياً. تأكد من تحديد محتوى مناسب للطالب لمراجعته.</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="task_date" class="form-label">التاريخ:</label>
+                            <input type="date" name="task_date" id="task_date" class="form-control" 
+                                   min="{{ plan.week_start|date:'Y-m-d' }}" max="{{ plan.week_end|date:'Y-m-d' }}" 
+                                   value="{{ plan.week_start|date:'Y-m-d' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="task_type" class="form-label">نوع المهمة:</label>
+                            <select name="task_type" id="task_type" class="form-control" onchange="toggleTaskFields()">
+                                <option value="new">حفظ جديد</option>
+                                <option value="review">مراجعة</option>
+                                <option value="tajweed">تجويد</option>
+                                <option value="fiqh">فقه العبادات</option>
+                                <option value="jibal">يا جبال أوبي</option>
+                                <option value="custom">درس مخصص</option>
+                            </select>
+                        </div>
+                        
+                        <!-- الحقول الخاصة بالحفظ والمراجعة -->
+                        <div id="quranFields">
+                            <div class="mb-3">
+                                <label for="surah_start" class="form-label">السورة:</label>
+                                <select name="surah_start" id="surah_start" class="form-control">
+                                    {% for i in ""|ljust:"114" %}
+                                        {% with surah_num=forloop.counter %}
+                                            <option value="{{ surah_num }}">{{ surah_num }} - 
+                                                {% if surah_num == 1 %}الفاتحة
+                                                {% elif surah_num == 2 %}البقرة
+                                                {% elif surah_num == 3 %}آل عمران
+                                                {% elif surah_num == 4 %}النساء
+                                                {% elif surah_num == 5 %}المائدة
+                                                {% elif surah_num == 6 %}الأنعام
+                                                {% elif surah_num == 7 %}الأعراف
+                                                {% elif surah_num == 8 %}الأنفال
+                                                {% elif surah_num == 9 %}التوبة
+                                                {% elif surah_num == 10 %}يونس
+                                                {% elif surah_num == 11 %}هود
+                                                {% elif surah_num == 12 %}يوسف
+                                                {% elif surah_num == 13 %}الرعد
+                                                {% elif surah_num == 14 %}إبراهيم
+                                                {% elif surah_num == 15 %}الحجر
+                                                {% elif surah_num == 16 %}النحل
+                                                {% elif surah_num == 17 %}الإسراء
+                                                {% elif surah_num == 18 %}الكهف
+                                                {% elif surah_num == 19 %}مريم
+                                                {% elif surah_num == 20 %}طه
+                                                {% else %}سورة {{ surah_num }}
+                                                {% endif %}
+                                            </option>
+                                        {% endwith %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col">
+                                    <div class="mb-3">
+                                        <label for="ayah_start" class="form-label">من الآية:</label>
+                                        <input type="number" name="ayah_start" id="ayah_start" class="form-control" value="1" min="1" required>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                    <div class="mb-3">
+                                        <label for="ayah_end" class="form-label">إلى الآية:</label>
+                                        <input type="number" name="ayah_end" id="ayah_end" class="form-control" value="1" min="1" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- الحقول الخاصة بالدروس المخصصة -->
+                        <div id="customFields" style="display: none;">
+                            <div class="mb-3">
+                                <label for="description" class="form-label">وصف المهمة:</label>
+                                <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                        <button type="submit" class="btn btn-primary">إضافة المهمة</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End Modal -->
+    
+    <div class="mt-4">
+        <a href="{% url 'plan_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right ml-1"></i> العودة إلى قائمة الخطط
+        </a>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function toggleTaskFields() {
+        var taskType = document.getElementById('task_type').value;
+        var quranFields = document.getElementById('quranFields');
+        var customFields = document.getElementById('customFields');
+        var reviewNote = document.getElementById('reviewNote');
+        
+        if (taskType === 'new' || taskType === 'review') {
+            quranFields.style.display = 'block';
+            customFields.style.display = 'none';
+            
+            // Show note if task type is review
+            if (taskType === 'review') {
+                reviewNote.style.display = 'block';
+            } else {
+                reviewNote.style.display = 'none';
+            }
+        } else {
+            quranFields.style.display = 'none';
+            customFields.style.display = 'block';
+            reviewNote.style.display = 'none';
+        }
+    }
+    
+    // Initialize field visibility on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleTaskFields();
+    });
+</script>
+{% endblock %}
+
+{% endblock %} 

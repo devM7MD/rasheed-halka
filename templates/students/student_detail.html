@@ -1,0 +1,218 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل الطالب - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">تفاصيل الطالب</h2>
+            <div>
+                <a href="{% url 'student_edit' student_id=student.id %}" class="btn btn-light ml-2">
+                    <i class="fas fa-edit ml-1"></i> تعديل
+                </a>
+                <a href="{% url 'student_delete' student_id=student.id %}" class="btn btn-danger">
+                    <i class="fas fa-trash-alt ml-1"></i> حذف
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="row">
+                <!-- Student Photo -->
+                <div class="col-md-3 text-center mb-4">
+                    {% if student.photo %}
+                    <img src="{{ student.photo.url }}" alt="{{ student.full_name }}" class="img-fluid rounded" style="max-height: 250px;">
+                    {% else %}
+                    <div class="placeholder-image">
+                        <i class="fas fa-user-circle fa-8x text-secondary"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Student Information -->
+                <div class="col-md-9">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">الاسم الكامل</h5>
+                            <p>{{ student.full_name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">الفئة</h5>
+                            <p>
+                                {% if student.category == 'university' %}
+                                    طالب جامعي
+                                {% elif student.category == 'school' %}
+                                    طالب مدرسة
+                                {% elif student.category == 'graduate' %}
+                                    خريج
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">الجنس</h5>
+                            <p>
+                                {% if student.gender == 'male' %}
+                                    ذكر
+                                {% else %}
+                                    أنثى
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">الجنسية</h5>
+                            <p>{{ student.nationality }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">تاريخ الميلاد</h5>
+                            <p>{{ student.date_of_birth }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">تاريخ التسجيل</h5>
+                            <p>{{ student.registration_date }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">المستوى الدراسي</h5>
+                            <p>{{ student.study_level }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">رقم الهاتف</h5>
+                            <p>{{ student.phone_number }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">اسم ولي الأمر</h5>
+                            <p>{{ student.guardian_name }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">رقم هاتف ولي الأمر</h5>
+                            <p>{{ student.guardian_phone }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">حالة الدفع</h5>
+                            <p>
+                                {% if student.payment_status == 'active' %}
+                                    <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                    <span class="badge bg-danger">غير نشط</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">الحالة</h5>
+                            <p>
+                                {% if student.status == 'active' %}
+                                    <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                    <span class="badge bg-danger">غير نشط</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">الفرع</h5>
+                            <p>{{ student.branch }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">المركز</h5>
+                            <p>{{ student.center }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">المنطقة</h5>
+                            <p>{{ student.region }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5 class="text-primary">المعلم</h5>
+                            <p>{{ student.teacher }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Certificates Section -->
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">الشهادات</h3>
+            <a href="{% url 'certificate_add' student_id=student.id %}" class="btn btn-light">
+                <i class="fas fa-plus-circle ml-1"></i> إضافة شهادة
+            </a>
+        </div>
+        
+        <div class="card-body">
+            {% if certificates %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>العنوان</th>
+                            <th>الوصف</th>
+                            <th>تاريخ الإصدار</th>
+                            <th>تاريخ الرفع</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for certificate in certificates %}
+                        <tr>
+                            <td>{{ certificate.title }}</td>
+                            <td>
+                                {% if certificate.description %}
+                                {{ certificate.description|truncatechars:50 }}
+                                {% else %}
+                                <em class="text-muted">لا يوجد وصف</em>
+                                {% endif %}
+                            </td>
+                            <td>{{ certificate.issue_date }}</td>
+                            <td>{{ certificate.uploaded_at|date:"Y-m-d" }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ certificate.file.url }}" class="btn btn-sm btn-info" target="_blank">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <a href="{% url 'certificate_delete' certificate_id=certificate.id %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                لا توجد شهادات مسجلة لهذا الطالب
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <a href="{% url 'student_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-right ml-1"></i> العودة إلى قائمة الطلاب
+        </a>
+    </div>
+</div>
+{% endblock %} 

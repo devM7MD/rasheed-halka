@@ -1,0 +1,47 @@
+{% extends 'core/base.html' %}
+
+{% block title %}تسجيل الدخول - نظام إدارة حلقة القرآن{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h3 class="mb-0">تسجيل الدخول</h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="fas fa-exclamation-circle ml-2"></i>
+                        اسم المستخدم أو كلمة المرور غير صحيحة. الرجاء المحاولة مرة أخرى.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <label for="username" class="form-label">اسم المستخدم</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="username" name="username" placeholder="أدخل اسم المستخدم" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="password" class="form-label">كلمة المرور</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="أدخل كلمة المرور" required>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-2">
+                        <i class="fas fa-sign-in-alt ml-2"></i> تسجيل الدخول
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

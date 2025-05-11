@@ -1,0 +1,182 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}مهام اليوم - {{ today|date:"Y-m-d" }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">مهام اليوم: {{ today|date:"Y-m-d" }}</h2>
+            <div>
+                <a href="{% url 'plan_list' %}" class="btn btn-light">
+                    <i class="fas fa-list ml-1"></i> قائمة الخطط
+                </a>
+                <a href="{% url 'plan_generate' %}" class="btn btn-success">
+                    <i class="fas fa-plus-circle ml-1"></i> إنشاء خطة جديدة
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <!-- بحث وتصفية -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <form method="GET" class="d-flex">
+                        <div class="input-group">
+                            <select name="student_id" class="form-control">
+                                <option value="">جميع الطلاب</option>
+                                {% for student in students %}
+                                <option value="{{ student.id }}" {% if selected_student_id == student.id|stringformat:"i" %}selected{% endif %}>{{ student.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> تصفية
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="col-md-6 text-start">
+                    <h5 class="text-primary mb-0">
+                        <i class="fas fa-calendar-day ml-1"></i>
+                        إجمالي المهام: <span class="badge bg-info">{{ tasks|length }}</span>
+                    </h5>
+                </div>
+            </div>
+            
+            <!-- جدول المهام -->
+            {% if tasks %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>الطالب</th>
+                            <th>المهمة</th>
+                            <th>السورة/الآية</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'plan_detail' plan_id=task.plan.id %}" class="text-decoration-none">
+                                    {% if task.plan.student.photo %}
+                                    <img src="{{ task.plan.student.photo.url }}" alt="{{ task.plan.student.full_name }}" class="rounded-circle mr-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                    {% else %}
+                                    <i class="fas fa-user-circle mr-2"></i>
+                                    {% endif %}
+                                    {{ task.plan.student.full_name }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if task.task_type == 'new' %}
+                                    <span class="badge bg-primary">حفظ جديد</span>
+                                {% elif task.task_type == 'review' %}
+                                    <span class="badge bg-success">مراجعة</span>
+                                {% elif task.task_type == 'tajweed' %}
+                                    <span class="badge bg-info">تجويد</span>
+                                {% elif task.task_type == 'fiqh' %}
+                                    <span class="badge bg-warning">فقه العبادات</span>
+                                {% elif task.task_type == 'jibal' %}
+                                    <span class="badge bg-secondary">يا جبال أوبي</span>
+                                {% else %}
+                                    <span class="badge bg-dark">{{ task.get_task_type_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if task.task_type == 'new' or task.task_type == 'review' %}
+                                    {% if task.surah_start == 1 %}سورة الفاتحة
+                                    {% elif task.surah_start == 2 %}سورة البقرة
+                                    {% elif task.surah_start == 3 %}سورة آل عمران
+                                    {% elif task.surah_start == 4 %}سورة النساء
+                                    {% elif task.surah_start == 5 %}سورة المائدة
+                                    {% elif task.surah_start == 6 %}سورة الأنعام
+                                    {% elif task.surah_start == 7 %}سورة الأعراف
+                                    {% elif task.surah_start == 8 %}سورة الأنفال
+                                    {% elif task.surah_start == 9 %}سورة التوبة
+                                    {% elif task.surah_start == 10 %}سورة يونس
+                                    {% elif task.surah_start == 11 %}سورة هود
+                                    {% elif task.surah_start == 12 %}سورة يوسف
+                                    {% elif task.surah_start == 13 %}سورة الرعد
+                                    {% elif task.surah_start == 14 %}سورة إبراهيم
+                                    {% elif task.surah_start == 15 %}سورة الحجر
+                                    {% elif task.surah_start == 16 %}سورة النحل
+                                    {% elif task.surah_start == 17 %}سورة الإسراء
+                                    {% elif task.surah_start == 18 %}سورة الكهف
+                                    {% elif task.surah_start == 19 %}سورة مريم
+                                    {% elif task.surah_start == 20 %}سورة طه
+                                    {% elif task.surah_start > 20 %}سورة {{ task.surah_start }}
+                                    {% else %}{{ task.surah_start }}
+                                    {% endif %}: الآيات {{ task.ayah_start }} - {{ task.ayah_end }}
+                                {% else %}
+                                    {{ task.description|default:"لا يوجد وصف" }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if task.status == 'completed' %}
+                                    <span class="badge bg-success">مكتمل</span>
+                                {% elif task.status == 'in_progress' %}
+                                    <span class="badge bg-warning">قيد التنفيذ</span>
+                                {% elif task.status == 'canceled' %}
+                                    <span class="badge bg-danger">ملغي</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">معلق</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#updateTask{{ task.id }}">
+                                    <i class="fas fa-edit"></i> تحديث
+                                </button>
+                                
+                                <!-- Modal for Task Update -->
+                                <div class="modal fade" id="updateTask{{ task.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form action="{% url 'task_update' task_id=task.id %}?redirect=today" method="POST">
+                                                {% csrf_token %}
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">تحديث حالة المهمة</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="status{{ task.id }}" class="form-label">الحالة:</label>
+                                                        <select name="status" id="status{{ task.id }}" class="form-control">
+                                                            <option value="pending" {% if task.status == 'pending' %}selected{% endif %}>معلق</option>
+                                                            <option value="in_progress" {% if task.status == 'in_progress' %}selected{% endif %}>قيد التنفيذ</option>
+                                                            <option value="completed" {% if task.status == 'completed' %}selected{% endif %}>مكتمل</option>
+                                                            <option value="canceled" {% if task.status == 'canceled' %}selected{% endif %}>ملغي</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="comments{{ task.id }}" class="form-label">ملاحظات:</label>
+                                                        <textarea name="comments" id="comments{{ task.id }}" class="form-control" rows="3">{{ task.comments }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                                                    <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Modal -->
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info text-center">
+                <h5 class="mb-0"><i class="fas fa-info-circle ml-1"></i> لا توجد مهام لليوم</h5>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

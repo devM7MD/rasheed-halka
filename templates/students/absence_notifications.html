@@ -1,0 +1,231 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}إشعارات الغياب - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">إشعارات الغياب</h2>
+            <div>
+                <a href="{% url 'student_detail' pk=student.id %}" class="btn btn-light btn-sm ml-2">
+                    <i class="fas fa-user ml-1"></i> ملف الطالب
+                </a>
+                <a href="{% url 'student_list' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-list ml-1"></i> قائمة الطلاب
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        {% if student.photo %}
+                        <img src="{{ student.photo.url }}" alt="{{ student.full_name }}" class="rounded-circle ml-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center ml-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="mb-0">{{ student.full_name }}</h3>
+                            <p class="text-muted mb-0">{{ student.get_level_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end">
+                        <div class="text-center ml-4">
+                            <h5 class="mb-1">نسبة الحضور</h5>
+                            <div class="progress" style="height: 25px;">
+                                <div class="progress-bar {% if attendance_percentage >= 90 %}bg-success{% elif attendance_percentage >= 75 %}bg-info{% elif attendance_percentage >= 60 %}bg-warning{% else %}bg-danger{% endif %}" 
+                                    role="progressbar" 
+                                    style="width: {{ attendance_percentage }}%;" 
+                                    aria-valuenow="{{ attendance_percentage }}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100">
+                                    {{ attendance_percentage }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <h5 class="mb-1">عدد أيام الغياب</h5>
+                            <div class="display-4 {% if absence_count > 10 %}text-danger{% elif absence_count > 5 %}text-warning{% else %}text-dark{% endif %}">
+                                {{ absence_count }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- نموذج إرسال إشعار جديد -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">إرسال إشعار غياب جديد</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'send_absence_notification' student_id=student.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="notification_type" class="form-label">نوع الإشعار:</label>
+                                <select id="notification_type" name="notification_type" class="form-select" required>
+                                    <option value="" selected disabled>-- اختر نوع الإشعار --</option>
+                                    <option value="sms">رسالة نصية (SMS)</option>
+                                    <option value="call">اتصال هاتفي</option>
+                                    <option value="whatsapp">واتساب</option>
+                                    <option value="email">بريد إلكتروني</option>
+                                    <option value="visit">زيارة منزلية</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="contact_person" class="form-label">الشخص الذي تم التواصل معه:</label>
+                                <select id="contact_person" name="contact_person" class="form-select" required>
+                                    <option value="" selected disabled>-- اختر --</option>
+                                    <option value="father">الأب</option>
+                                    <option value="mother">الأم</option>
+                                    <option value="student">الطالب نفسه</option>
+                                    <option value="guardian">ولي الأمر</option>
+                                    <option value="other">آخر</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="absence_dates" class="form-label">تواريخ الغياب:</label>
+                            <input type="text" id="absence_dates" name="absence_dates" class="form-control" placeholder="مثال: 2023-01-01، 2023-01-02، 2023-01-03" required>
+                            <small class="form-text text-muted">أدخل التواريخ مفصولة بفواصل</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notification_text" class="form-label">نص الإشعار:</label>
+                            <textarea id="notification_text" name="notification_text" class="form-control" rows="3" required>السلام عليكم ورحمة الله، نود إشعاركم بغياب الطالب {{ student.full_name }} عن حلقة تحفيظ القرآن الكريم في الأيام التالية: _____________. نأمل منكم التكرم بالتواصل معنا، وتقبلوا فائق الاحترام.</textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">ملاحظات:</label>
+                            <textarea id="notes" name="notes" class="form-control" rows="2"></textarea>
+                        </div>
+                        
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-paper-plane ml-1"></i> إرسال الإشعار
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- سجل الإشعارات السابقة -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">سجل الإشعارات السابقة</h5>
+                </div>
+                <div class="card-body">
+                    {% if notifications %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>التاريخ</th>
+                                    <th>نوع الإشعار</th>
+                                    <th>المرسل</th>
+                                    <th>التواصل مع</th>
+                                    <th>أيام الغياب</th>
+                                    <th>ملاحظات</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for notification in notifications %}
+                                <tr>
+                                    <td>{{ notification.sent_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        {% if notification.notification_type == 'sms' %}
+                                        <span class="badge bg-primary">رسالة نصية</span>
+                                        {% elif notification.notification_type == 'call' %}
+                                        <span class="badge bg-success">اتصال هاتفي</span>
+                                        {% elif notification.notification_type == 'whatsapp' %}
+                                        <span class="badge bg-info">واتساب</span>
+                                        {% elif notification.notification_type == 'email' %}
+                                        <span class="badge bg-secondary">بريد إلكتروني</span>
+                                        {% elif notification.notification_type == 'visit' %}
+                                        <span class="badge bg-warning">زيارة منزلية</span>
+                                        {% else %}
+                                        <span class="badge bg-dark">{{ notification.get_notification_type_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ notification.sender.full_name }}</td>
+                                    <td>{{ notification.get_contact_person_display }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ notification.absence_dates|join:', ' }}">
+                                            {{ notification.absence_dates|length }} أيام
+                                        </button>
+                                    </td>
+                                    <td>
+                                        {% if notification.notes %}
+                                        <button class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ notification.notes }}">
+                                            <i class="fas fa-sticky-note"></i>
+                                        </button>
+                                        {% else %}
+                                        —
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'edit_absence_notification' pk=notification.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'view_absence_notification' pk=notification.id %}" class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle ml-2"></i>
+                        لا توجد إشعارات غياب سابقة لهذا الطالب.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // تهيئة tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // إضافة التاريخ الحالي تلقائيًا
+        var today = new Date();
+        var formattedDate = today.getFullYear() + '-' + 
+                            String(today.getMonth() + 1).padStart(2, '0') + '-' + 
+                            String(today.getDate()).padStart(2, '0');
+        
+        // تحديث نص الإشعار عند تغيير تواريخ الغياب
+        var absenceDatesField = document.getElementById('absence_dates');
+        var notificationTextField = document.getElementById('notification_text');
+        var baseMessage = 'السلام عليكم ورحمة الله، نود إشعاركم بغياب الطالب {{ student.full_name }} عن حلقة تحفيظ القرآن الكريم في الأيام التالية: _____________. نأمل منكم التكرم بالتواصل معنا، وتقبلوا فائق الاحترام.';
+        
+        absenceDatesField.addEventListener('input', function() {
+            notificationTextField.value = baseMessage.replace('_____________', this.value);
+        });
+    });
+</script>
+{% endblock %} 

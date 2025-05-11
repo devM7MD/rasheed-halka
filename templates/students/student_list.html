@@ -1,0 +1,121 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}قائمة الطلاب{% endblock %}
+
+{% block content %}
+<div class="container-fluid rtl">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">قائمة الطلاب</h2>
+            <a href="{% url 'student_add' %}" class="btn btn-light">
+                <i class="fas fa-plus-circle ml-1"></i> إضافة طالب جديد
+            </a>
+        </div>
+        
+        <div class="card-body">
+            <!-- Filter & Search -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <form method="GET" class="d-flex">
+                        <div class="input-group">
+                            <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="البحث عن طالب...">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <div class="btn-group w-100">
+                        <a href="?status=active{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-outline-primary {% if status_filter == 'active' %}active{% endif %}">الطلاب النشطين</a>
+                        <a href="?status=inactive{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-outline-primary {% if status_filter == 'inactive' %}active{% endif %}">الطلاب غير النشطين</a>
+                        <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-outline-primary {% if status_filter == 'all' %}active{% endif %}">جميع الطلاب</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Student List -->
+            {% if students %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>الاسم الكامل</th>
+                            <th>الفئة</th>
+                            <th>رقم الهاتف</th>
+                            <th>المستوى الدراسي</th>
+                            <th>اسم ولي الأمر</th>
+                            <th>حالة الدفع</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>
+                                {% if student.photo %}
+                                <img src="{{ student.photo.url }}" alt="{{ student.full_name }}" class="rounded-circle mr-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% else %}
+                                <i class="fas fa-user-circle mr-2"></i>
+                                {% endif %}
+                                {{ student.full_name }}
+                            </td>
+                            <td>
+                                {% if student.category == 'university' %}
+                                    طالب جامعي
+                                {% elif student.category == 'school' %}
+                                    طالب مدرسة
+                                {% elif student.category == 'graduate' %}
+                                    خريج
+                                {% endif %}
+                            </td>
+                            <td>{{ student.phone_number }}</td>
+                            <td>{{ student.study_level }}</td>
+                            <td>{{ student.guardian_name }}</td>
+                            <td>
+                                {% if student.payment_status == 'active' %}
+                                <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                <span class="badge bg-danger">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if student.status == 'active' %}
+                                <span class="badge bg-success">نشط</span>
+                                {% else %}
+                                <span class="badge bg-danger">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'student_detail' student_id=student.id %}" class="btn btn-sm btn-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'student_edit' student_id=student.id %}" class="btn btn-sm btn-warning">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'student_delete' student_id=student.id %}" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                {% if search_query %}
+                لا توجد نتائج للبحث "{{ search_query }}"
+                {% else %}
+                لا يوجد طلاب مسجلين حاليًا
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,169 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}سجلات الحضور{% endblock %}
+
+{% block content %}
+<div class="container-fluid rtl">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">سجلات الحضور</h2>
+            <div>
+                <a href="{% url 'attendance_edit_date' %}" class="btn btn-light ml-2">
+                    <i class="fas fa-calendar-alt ml-1"></i> تعديل سجل سابق
+                </a>
+                <a href="{% url 'attendance_report' %}" class="btn btn-light ml-2">
+                    <i class="fas fa-chart-pie ml-1"></i> تقرير الحضور
+                </a>
+                <a href="{% url 'attendance_today' %}" class="btn btn-success">
+                    <i class="fas fa-clipboard-check ml-1"></i> تسجيل حضور اليوم
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <!-- Filter & Search -->
+            <div class="row mb-4">
+                <div class="col-md-5">
+                    <form method="GET" class="d-flex">
+                        <div class="input-group">
+                            <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="البحث عن طالب...">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-4">
+                    <form method="GET" class="d-flex">
+                        <input type="hidden" name="q" value="{{ search_query }}">
+                        <input type="hidden" name="status" value="{{ status_filter }}">
+                        <div class="input-group">
+                            <input type="date" name="date" value="{{ filter_date|date:'Y-m-d' }}" class="form-control">
+                            <button type="submit" class="btn btn-info">
+                                <i class="fas fa-calendar-day"></i> تصفية
+                            </button>
+                            {% if filter_date %}
+                            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if status_filter != 'all' %}status={{ status_filter }}{% endif %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> إلغاء التصفية
+                            </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-3">
+                    <div class="btn-group w-100">
+                        <a href="?status=present{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_date %}&date={{ filter_date|date:'Y-m-d' }}{% endif %}" class="btn btn-outline-success {% if status_filter == 'present' %}active{% endif %}">حاضر</a>
+                        <a href="?status=absent{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_date %}&date={{ filter_date|date:'Y-m-d' }}{% endif %}" class="btn btn-outline-danger {% if status_filter == 'absent' %}active{% endif %}">غائب</a>
+                        <a href="?status=excused{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_date %}&date={{ filter_date|date:'Y-m-d' }}{% endif %}" class="btn btn-outline-warning {% if status_filter == 'excused' %}active{% endif %}">مرخص</a>
+                        <a href="?status=all{% if search_query %}&q={{ search_query }}{% endif %}{% if filter_date %}&date={{ filter_date|date:'Y-m-d' }}{% endif %}" class="btn btn-outline-primary {% if status_filter == 'all' %}active{% endif %}">الكل</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- عرض معايير التصفية -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="text-primary mb-0">
+                    {% if filter_date %}
+                    سجلات حضور: <span class="badge bg-info">{{ filter_date|date:"Y-m-d" }}</span>
+                    {% elif status_filter != 'all' or search_query %}
+                    سجلات الحضور المصفاة
+                    {% else %}
+                    جميع سجلات الحضور
+                    {% endif %}
+                    
+                    {% if status_filter == 'present' %}
+                    <span class="badge bg-success">حاضر</span>
+                    {% elif status_filter == 'absent' %}
+                    <span class="badge bg-danger">غائب</span>
+                    {% elif status_filter == 'excused' %}
+                    <span class="badge bg-warning">مرخص</span>
+                    {% endif %}
+                    
+                    {% if search_query %}
+                    <span class="badge bg-secondary">بحث: {{ search_query }}</span>
+                    {% endif %}
+                </h5>
+                <div>
+                    <span class="badge bg-primary">{{ records.count }} سجل</span>
+                </div>
+            </div>
+            
+            <!-- Attendance List -->
+            {% if records %}
+            <div class="table-responsive">
+                <table class="table table-hover table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>الطالب</th>
+                            <th>التاريخ</th>
+                            <th>اليوم</th>
+                            <th>الحالة</th>
+                            <th>ملاحظات</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>
+                                {% if record.student.photo %}
+                                <img src="{{ record.student.photo.url }}" alt="{{ record.student.full_name }}" class="rounded-circle mr-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                {% else %}
+                                <i class="fas fa-user-circle mr-2"></i>
+                                {% endif %}
+                                {{ record.student.full_name }}
+                            </td>
+                            <td>{{ record.date|date:"Y-m-d" }}</td>
+                            <td>
+                                {% if record.date.weekday == 0 %}
+                                    الاثنين
+                                {% elif record.date.weekday == 1 %}
+                                    الثلاثاء
+                                {% elif record.date.weekday == 2 %}
+                                    الأربعاء
+                                {% elif record.date.weekday == 3 %}
+                                    الخميس
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.status == 'present' %}
+                                <span class="badge bg-success">حاضر</span>
+                                {% elif record.status == 'absent' %}
+                                <span class="badge bg-danger">غائب</span>
+                                {% elif record.status == 'excused' %}
+                                <span class="badge bg-warning">مرخص</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if record.notes %}
+                                {{ record.notes|truncatechars:50 }}
+                                {% else %}
+                                <em class="text-muted">لا توجد ملاحظات</em>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'attendance_edit' attendance_id=record.id %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                {% if search_query %}
+                لا توجد نتائج للبحث "{{ search_query }}"
+                {% elif filter_date %}
+                لا توجد سجلات حضور في تاريخ {{ filter_date|date:"Y-m-d" }}
+                {% else %}
+                لا توجد سجلات حضور مسجلة
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

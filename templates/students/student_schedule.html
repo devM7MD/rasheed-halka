@@ -1,0 +1,549 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}الجدول الأسبوعي - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">الجدول الأسبوعي</h2>
+            <div>
+                <a href="{% url 'student_detail' pk=student.id %}" class="btn btn-light btn-sm ml-2">
+                    <i class="fas fa-user ml-1"></i> ملف الطالب
+                </a>
+                <a href="{% url 'student_list' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-list ml-1"></i> قائمة الطلاب
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        {% if student.photo %}
+                        <img src="{{ student.photo.url }}" alt="{{ student.full_name }}" class="rounded-circle ml-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center ml-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="mb-0">{{ student.full_name }}</h3>
+                            <p class="text-muted mb-0">{{ student.get_level_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex flex-column align-items-end">
+                        <div class="d-flex mb-2">
+                            <div class="d-flex align-items-center ml-3">
+                                <div class="small text-muted ml-2">الأسبوع الحالي:</div>
+                                <div class="badge bg-primary">{{ current_week_dates }}</div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="small text-muted ml-2">السورة الحالية:</div>
+                                <div class="badge bg-success">{{ current_surah }}</div>
+                            </div>
+                        </div>
+                        <div>
+                            <a href="{% url 'edit_schedule' student_id=student.id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit ml-1"></i> تعديل الجدول
+                            </a>
+                            <a href="{% url 'print_schedule' student_id=student.id %}" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-print ml-1"></i> طباعة
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- معلومات الخطة -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="card-title mb-0">معلومات الخطة</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">هدف الحفظ اليومي:</dt>
+                                <dd class="col-sm-8">{{ daily_target }} آيات</dd>
+                                
+                                <dt class="col-sm-4">حالة الخطة:</dt>
+                                <dd class="col-sm-8">
+                                    {% if schedule_status == 'active' %}
+                                    <span class="badge bg-success">نشطة</span>
+                                    {% elif schedule_status == 'completed' %}
+                                    <span class="badge bg-info">مكتملة</span>
+                                    {% elif schedule_status == 'paused' %}
+                                    <span class="badge bg-warning">متوقفة مؤقتًا</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">غير نشطة</span>
+                                    {% endif %}
+                                </dd>
+                                
+                                <dt class="col-sm-4">مجموعة الطالب:</dt>
+                                <dd class="col-sm-8">{{ student_group }}</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">تاريخ البدء:</dt>
+                                <dd class="col-sm-8">{{ start_date|date:"Y-m-d" }}</dd>
+                                
+                                <dt class="col-sm-4">التقدم الحالي:</dt>
+                                <dd class="col-sm-8">
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_percentage }}%;" aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                            {{ progress_percentage }}%
+                                        </div>
+                                    </div>
+                                </dd>
+                                
+                                <dt class="col-sm-4">المعلم المشرف:</dt>
+                                <dd class="col-sm-8">{{ supervising_teacher }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- جدول المهام الأسبوعي -->
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">جدول المهام الأسبوعي</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-primary active" id="current-week-btn">الأسبوع الحالي</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="next-week-btn">الأسبوع القادم</button>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="history-btn">السجل السابق</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- جدول الأسبوع الحالي -->
+                    <div id="current-week-table">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>اليوم</th>
+                                        <th>التاريخ</th>
+                                        <th>نوع المهمة</th>
+                                        <th>المحتوى</th>
+                                        <th>الحالة</th>
+                                        <th>ملاحظات</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in current_week_tasks %}
+                                    <tr>
+                                        <td>{{ task.day_name }}</td>
+                                        <td>{{ task.date|date:"Y-m-d" }}</td>
+                                        <td>
+                                            {% if task.task_type == 'new' %}
+                                            <span class="badge bg-primary">حفظ جديد</span>
+                                            {% elif task.task_type == 'review' %}
+                                            <span class="badge bg-success">مراجعة</span>
+                                            {% elif task.task_type == 'tajweed' %}
+                                            <span class="badge bg-info">تجويد</span>
+                                            {% elif task.task_type == 'special' %}
+                                            <span class="badge bg-warning">جلسة خاصة</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ task.get_task_type_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.task_type == 'new' or task.task_type == 'review' %}
+                                            سورة {{ task.surah }}: {{ task.ayah_start }} - {{ task.ayah_end }}
+                                            {% else %}
+                                            {{ task.description }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.status == 'completed' %}
+                                            <span class="badge bg-success">مكتمل</span>
+                                            {% elif task.status == 'in_progress' %}
+                                            <span class="badge bg-warning">قيد التنفيذ</span>
+                                            {% elif task.status == 'canceled' %}
+                                            <span class="badge bg-danger">ملغي</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">معلق</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.notes %}
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="{{ task.notes }}">
+                                                <i class="fas fa-sticky-note"></i>
+                                            </button>
+                                            {% else %}
+                                            —
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a href="{% url 'update_task' task_id=task.id %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if task.status == 'pending' or task.status == 'in_progress' %}
+                                                <button class="btn btn-sm btn-outline-success mark-complete-btn" data-task-id="{{ task.id }}">
+                                                    <i class="fas fa-check"></i>
+                                                </button>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center">
+                                            <div class="alert alert-info mb-0">
+                                                لا توجد مهام مجدولة للأسبوع الحالي
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- جدول الأسبوع القادم -->
+                    <div id="next-week-table" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>اليوم</th>
+                                        <th>التاريخ</th>
+                                        <th>نوع المهمة</th>
+                                        <th>المحتوى</th>
+                                        <th>الحالة</th>
+                                        <th>ملاحظات</th>
+                                        <th>إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in next_week_tasks %}
+                                    <tr>
+                                        <td>{{ task.day_name }}</td>
+                                        <td>{{ task.date|date:"Y-m-d" }}</td>
+                                        <td>
+                                            {% if task.task_type == 'new' %}
+                                            <span class="badge bg-primary">حفظ جديد</span>
+                                            {% elif task.task_type == 'review' %}
+                                            <span class="badge bg-success">مراجعة</span>
+                                            {% elif task.task_type == 'tajweed' %}
+                                            <span class="badge bg-info">تجويد</span>
+                                            {% elif task.task_type == 'special' %}
+                                            <span class="badge bg-warning">جلسة خاصة</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ task.get_task_type_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.task_type == 'new' or task.task_type == 'review' %}
+                                            سورة {{ task.surah }}: {{ task.ayah_start }} - {{ task.ayah_end }}
+                                            {% else %}
+                                            {{ task.description }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.status == 'completed' %}
+                                            <span class="badge bg-success">مكتمل</span>
+                                            {% elif task.status == 'in_progress' %}
+                                            <span class="badge bg-warning">قيد التنفيذ</span>
+                                            {% elif task.status == 'canceled' %}
+                                            <span class="badge bg-danger">ملغي</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">معلق</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.notes %}
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="{{ task.notes }}">
+                                                <i class="fas fa-sticky-note"></i>
+                                            </button>
+                                            {% else %}
+                                            —
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'update_task' task_id=task.id %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="text-center">
+                                            <div class="alert alert-info mb-0">
+                                                لا توجد مهام مجدولة للأسبوع القادم
+                                                <button class="btn btn-sm btn-primary generate-plan-btn" data-student-id="{{ student.id }}">
+                                                    <i class="fas fa-calendar-plus ml-1"></i> إنشاء خطة الأسبوع القادم
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- سجل المهام السابقة -->
+                    <div id="history-table" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">المهام المكتملة خلال آخر 4 أسابيع</h6>
+                            <div class="form-group mb-0">
+                                <select id="history-filter" class="form-select form-select-sm">
+                                    <option value="all">جميع المهام</option>
+                                    <option value="new">الحفظ الجديد</option>
+                                    <option value="review">المراجعة</option>
+                                    <option value="completed">المكتملة فقط</option>
+                                    <option value="missed">الملغاة فقط</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>الأسبوع</th>
+                                        <th>التاريخ</th>
+                                        <th>نوع المهمة</th>
+                                        <th>المحتوى</th>
+                                        <th>الحالة</th>
+                                        <th>ملاحظات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in history_tasks %}
+                                    <tr class="history-row {{ task.task_type }}-task {{ task.status }}-status">
+                                        <td>{{ task.week_name }}</td>
+                                        <td>{{ task.date|date:"Y-m-d" }}</td>
+                                        <td>
+                                            {% if task.task_type == 'new' %}
+                                            <span class="badge bg-primary">حفظ جديد</span>
+                                            {% elif task.task_type == 'review' %}
+                                            <span class="badge bg-success">مراجعة</span>
+                                            {% elif task.task_type == 'tajweed' %}
+                                            <span class="badge bg-info">تجويد</span>
+                                            {% elif task.task_type == 'special' %}
+                                            <span class="badge bg-warning">جلسة خاصة</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">{{ task.get_task_type_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.task_type == 'new' or task.task_type == 'review' %}
+                                            سورة {{ task.surah }}: {{ task.ayah_start }} - {{ task.ayah_end }}
+                                            {% else %}
+                                            {{ task.description }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.status == 'completed' %}
+                                            <span class="badge bg-success">مكتمل</span>
+                                            {% elif task.status == 'in_progress' %}
+                                            <span class="badge bg-warning">قيد التنفيذ</span>
+                                            {% elif task.status == 'canceled' %}
+                                            <span class="badge bg-danger">ملغي</span>
+                                            {% else %}
+                                            <span class="badge bg-secondary">معلق</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if task.notes %}
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="tooltip" title="{{ task.notes }}">
+                                                <i class="fas fa-sticky-note"></i>
+                                            </button>
+                                            {% else %}
+                                            —
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center">
+                                            <div class="alert alert-info mb-0">
+                                                لا توجد مهام سابقة مسجلة
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: تأكيد إكمال المهمة -->
+<div class="modal fade" id="completeTaskModal" tabindex="-1" aria-labelledby="completeTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="completeTaskModalLabel">تأكيد إكمال المهمة</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="complete-task-form">
+                    <input type="hidden" id="task_id" name="task_id">
+                    
+                    <div class="mb-3">
+                        <label for="evaluation" class="form-label">التقييم (من 1 إلى 10):</label>
+                        <input type="number" id="evaluation" name="evaluation" min="1" max="10" class="form-control" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="completion_notes" class="form-label">ملاحظات:</label>
+                        <textarea id="completion_notes" name="completion_notes" class="form-control" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-success" id="confirm-complete-btn">تأكيد الإكمال</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // تهيئة tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // التبديل بين علامات التبويب
+        document.getElementById('current-week-btn').addEventListener('click', function() {
+            document.getElementById('current-week-table').style.display = '';
+            document.getElementById('next-week-table').style.display = 'none';
+            document.getElementById('history-table').style.display = 'none';
+            updateActiveButton('current-week-btn');
+        });
+        
+        document.getElementById('next-week-btn').addEventListener('click', function() {
+            document.getElementById('current-week-table').style.display = 'none';
+            document.getElementById('next-week-table').style.display = '';
+            document.getElementById('history-table').style.display = 'none';
+            updateActiveButton('next-week-btn');
+        });
+        
+        document.getElementById('history-btn').addEventListener('click', function() {
+            document.getElementById('current-week-table').style.display = 'none';
+            document.getElementById('next-week-table').style.display = 'none';
+            document.getElementById('history-table').style.display = '';
+            updateActiveButton('history-btn');
+        });
+        
+        function updateActiveButton(activeId) {
+            document.querySelectorAll('#current-week-btn, #next-week-btn, #history-btn').forEach(function(btn) {
+                btn.classList.remove('active');
+            });
+            document.getElementById(activeId).classList.add('active');
+        }
+        
+        // فلترة سجل المهام السابقة
+        document.getElementById('history-filter').addEventListener('change', function() {
+            var filter = this.value;
+            var rows = document.querySelectorAll('.history-row');
+            
+            rows.forEach(function(row) {
+                if (filter === 'all') {
+                    row.style.display = '';
+                } else if (filter === 'new' && row.classList.contains('new-task')) {
+                    row.style.display = '';
+                } else if (filter === 'review' && row.classList.contains('review-task')) {
+                    row.style.display = '';
+                } else if (filter === 'completed' && row.classList.contains('completed-status')) {
+                    row.style.display = '';
+                } else if (filter === 'missed' && row.classList.contains('canceled-status')) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // إكمال المهمة
+        var completeTaskModal = new bootstrap.Modal(document.getElementById('completeTaskModal'));
+        
+        document.querySelectorAll('.mark-complete-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var taskId = this.getAttribute('data-task-id');
+                document.getElementById('task_id').value = taskId;
+                completeTaskModal.show();
+            });
+        });
+        
+        document.getElementById('confirm-complete-btn').addEventListener('click', function() {
+            var form = document.getElementById('complete-task-form');
+            var formData = new FormData(form);
+            
+            // إرسال البيانات للخادم
+            fetch('{% url "complete_task" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('حدث خطأ: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('حدث خطأ أثناء معالجة الطلب');
+            });
+            
+            completeTaskModal.hide();
+        });
+        
+        // إنشاء خطة الأسبوع القادم
+        document.querySelectorAll('.generate-plan-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var studentId = this.getAttribute('data-student-id');
+                
+                // إرسال الطلب للخادم
+                fetch('{% url "generate_next_week_plan" %}', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        student_id: studentId
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('حدث خطأ: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('حدث خطأ أثناء معالجة الطلب');
+                });
+            });
+        });
+    });
+</script>
+{% endblock %} 

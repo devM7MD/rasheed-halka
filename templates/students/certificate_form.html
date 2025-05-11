@@ -1,0 +1,63 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title">{{ title }} - {{ student.full_name }}</h2>
+        </div>
+        
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">الرجاء تصحيح الأخطاء التالية:</h4>
+                    {{ form.errors }}
+                </div>
+                {% endif %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label">عنوان الشهادة:</label>
+                        {{ form.title }}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.issue_date.id_for_label }}" class="form-label">تاريخ الإصدار:</label>
+                        {{ form.issue_date }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">الوصف:</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.file.id_for_label }}" class="form-label">ملف الشهادة:</label>
+                        {{ form.file }}
+                        <small class="form-text text-muted">يرجى تحميل ملف PDF أو صورة (أقصى حجم: 5 ميغابايت)</small>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'student_detail' student_id=student.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right ml-1"></i> العودة
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save ml-1"></i> حفظ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

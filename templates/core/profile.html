@@ -1,0 +1,149 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}إعدادات الحساب{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0"><i class="fas fa-user-cog ml-2"></i> إعدادات الحساب</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-4 mb-md-0">
+                            <div class="text-center">
+                                {% if user.userprofile.profile_image %}
+                                    <img src="{{ user.userprofile.profile_image.url }}" alt="{{ user.username }}" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
+                                        <i class="fas fa-user-circle text-white" style="font-size: 120px;"></i>
+                                    </div>
+                                {% endif %}
+                                <h5>{{ user.get_full_name|default:user.username }}</h5>
+                                <p class="text-muted">{{ user.email }}</p>
+                            </div>
+                        </div>
+                        <div class="col-md-9">
+                            <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="true">
+                                        <i class="fas fa-user ml-1"></i> معلومات الحساب
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab" aria-controls="password" aria-selected="false">
+                                        <i class="fas fa-key ml-1"></i> تغيير كلمة المرور
+                                    </button>
+                                </li>
+                            </ul>
+                            <div class="tab-content p-3 border border-top-0 rounded-bottom" id="profileTabsContent">
+                                <!-- Profile Information Tab -->
+                                <div class="tab-pane fade show active" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                                    <form method="post" enctype="multipart/form-data">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="update_profile" value="1">
+                                        
+                                        <div class="mb-3">
+                                            <label for="username" class="form-label">اسم المستخدم</label>
+                                            <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" required>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="first_name" class="form-label">الاسم الأول</label>
+                                                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name }}">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="last_name" class="form-label">الاسم الأخير</label>
+                                                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name }}">
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label">البريد الإلكتروني</label>
+                                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="profile_image" class="form-label">الصورة الشخصية</label>
+                                            <input type="file" class="form-control" id="profile_image" name="profile_image" accept="image/*">
+                                            <small class="form-text text-muted">اترك هذا الحقل فارغًا إذا كنت لا ترغب في تغيير الصورة الحالية.</small>
+                                        </div>
+                                        
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save ml-1"></i> حفظ التغييرات
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                
+                                <!-- Password Change Tab -->
+                                <div class="tab-pane fade" id="password" role="tabpanel" aria-labelledby="password-tab">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="update_password" value="1">
+                                        
+                                        <div class="mb-3">
+                                            <label for="id_old_password" class="form-label">كلمة المرور الحالية</label>
+                                            <input type="password" name="old_password" class="form-control" required id="id_old_password" autocomplete="current-password">
+                                            {% if password_form.old_password.errors %}
+                                                <div class="text-danger">
+                                                    {% for error in password_form.old_password.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="id_new_password1" class="form-label">كلمة المرور الجديدة</label>
+                                            <input type="password" name="new_password1" class="form-control" required id="id_new_password1" autocomplete="new-password">
+                                            {% if password_form.new_password1.errors %}
+                                                <div class="text-danger">
+                                                    {% for error in password_form.new_password1.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                            <small class="form-text text-muted">
+                                                <ul>
+                                                    <li>يجب أن تحتوي على 8 أحرف على الأقل.</li>
+                                                    <li>لا يمكن أن تكون مشابهة جدًا لمعلوماتك الشخصية الأخرى.</li>
+                                                    <li>لا يمكن أن تكون كلمة مرور شائعة.</li>
+                                                    <li>لا يمكن أن تتكون من أرقام فقط.</li>
+                                                </ul>
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="id_new_password2" class="form-label">تأكيد كلمة المرور الجديدة</label>
+                                            <input type="password" name="new_password2" class="form-control" required id="id_new_password2" autocomplete="new-password">
+                                            {% if password_form.new_password2.errors %}
+                                                <div class="text-danger">
+                                                    {% for error in password_form.new_password2.errors %}
+                                                        {{ error }}
+                                                    {% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <div class="text-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-key ml-1"></i> تغيير كلمة المرور
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

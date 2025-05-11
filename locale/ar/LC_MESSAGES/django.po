@@ -1,0 +1,163 @@
+# Arabic translations for Rasheed Halka Django.
+# Copyright (C) 2024 Rasheed Halka
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-05-11 18:00+0400\n"
+"PO-Revision-Date: 2024-05-11 18:00+0400\n"
+"Last-Translator: Admin <admin@example.com>\n"
+"Language-Team: Arabic <ar@example.com>\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+
+#: core/views.py
+msgid "Dashboard"
+msgstr "لوحة التحكم"
+
+#: core/views.py
+msgid "Login"
+msgstr "تسجيل الدخول"
+
+#: core/views.py
+msgid "Logout"
+msgstr "تسجيل الخروج"
+
+#: students/models.py
+msgid "Male"
+msgstr "ذكر"
+
+#: students/models.py
+msgid "Female"
+msgstr "أنثى"
+
+#: students/models.py
+msgid "University Students"
+msgstr "طالب جامعي"
+
+#: students/models.py
+msgid "School Students"
+msgstr "طالب مدرسة"
+
+#: students/models.py
+msgid "Graduates"
+msgstr "خريج"
+
+#: students/models.py
+msgid "Active"
+msgstr "نشط"
+
+#: students/models.py
+msgid "Inactive"
+msgstr "غير نشط"
+
+#: students/models.py
+msgid "Branch"
+msgstr "الفرع"
+
+#: students/models.py
+msgid "Center"
+msgstr "المركز"
+
+#: students/models.py
+msgid "Center Type"
+msgstr "نوع المركز"
+
+#: students/models.py
+msgid "Region"
+msgstr "المنطقة"
+
+#: students/models.py
+msgid "Session Time"
+msgstr "وقت الجلسة"
+
+#: students/models.py
+msgid "Teacher"
+msgstr "المعلم"
+
+#: students/models.py
+msgid "Full Name"
+msgstr "الاسم الكامل"
+
+#: students/models.py
+msgid "Category"
+msgstr "الفئة"
+
+#: students/models.py
+msgid "Gender"
+msgstr "الجنس"
+
+#: students/models.py
+msgid "Nationality"
+msgstr "الجنسية"
+
+#: students/models.py
+msgid "Date of Birth"
+msgstr "تاريخ الميلاد"
+
+#: students/models.py
+msgid "Registration Date"
+msgstr "تاريخ التسجيل"
+
+#: students/models.py
+msgid "Study Level"
+msgstr "المستوى الدراسي"
+
+#: students/models.py
+msgid "Phone Number"
+msgstr "رقم الهاتف"
+
+#: students/models.py
+msgid "Guardian Name"
+msgstr "اسم ولي الأمر"
+
+#: students/models.py
+msgid "Guardian Phone"
+msgstr "هاتف ولي الأمر"
+
+#: students/models.py
+msgid "Payment Status"
+msgstr "حالة الدفع"
+
+#: students/models.py
+msgid "Status"
+msgstr "الحالة"
+
+#: students/models.py
+msgid "Photo"
+msgstr "الصورة الشخصية"
+
+#: students/models.py
+msgid "Certificate"
+msgstr "شهادة"
+
+#: students/models.py
+msgid "Certificates"
+msgstr "الشهادات"
+
+#: students/views.py
+msgid "Student has been added successfully!"
+msgstr "تمت إضافة الطالب بنجاح!"
+
+#: students/views.py
+msgid "Student has been updated successfully!"
+msgstr "تم تحديث بيانات الطالب بنجاح!"
+
+#: students/views.py
+msgid "Student has been deleted successfully!"
+msgstr "تم حذف الطالب بنجاح!"
+
+#: students/views.py
+msgid "Certificate has been added successfully!"
+msgstr "تمت إضافة الشهادة بنجاح!"
+
+#: students/views.py
+msgid "Certificate has been deleted successfully!"
+msgstr "تم حذف الشهادة بنجاح!" 

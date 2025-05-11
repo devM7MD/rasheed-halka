@@ -1,0 +1,223 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}شهادات الطالب - {{ student.full_name }}{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h2 class="card-title mb-0">شهادات الطالب</h2>
+            <div>
+                <a href="{% url 'certificate_form' student_id=student.id %}" class="btn btn-light btn-sm ml-2">
+                    <i class="fas fa-plus ml-1"></i> إضافة شهادة
+                </a>
+                <a href="{% url 'student_detail' pk=student.id %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-user ml-1"></i> ملف الطالب
+                </a>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        {% if student.photo %}
+                        <img src="{{ student.photo.url }}" alt="{{ student.full_name }}" class="rounded-circle ml-3" style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center ml-3" style="width: 60px; height: 60px;">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 class="mb-0">{{ student.full_name }}</h3>
+                            <p class="text-muted mb-0">{{ student.get_level_display }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex justify-content-end">
+                        <div class="text-center">
+                            <h5 class="mb-1">عدد الشهادات</h5>
+                            <h2 class="display-4">{{ certificates|length }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- قائمة الشهادات -->
+            {% if certificates %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>نوع الشهادة</th>
+                            <th>تاريخ الإصدار</th>
+                            <th>المحتوى</th>
+                            <th>الدرجة</th>
+                            <th>المعلم</th>
+                            <th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cert in certificates %}
+                        <tr>
+                            <td>
+                                {% if cert.certificate_type == 'quran_part' %}
+                                <span class="badge bg-primary">جزء من القرآن</span>
+                                {% elif cert.certificate_type == 'quran_full' %}
+                                <span class="badge bg-success">حفظ القرآن كاملًا</span>
+                                {% elif cert.certificate_type == 'tajweed' %}
+                                <span class="badge bg-info">تجويد</span>
+                                {% elif cert.certificate_type == 'fiqh' %}
+                                <span class="badge bg-warning">فقه العبادات</span>
+                                {% else %}
+                                <span class="badge bg-secondary">{{ cert.get_certificate_type_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ cert.issue_date|date:"Y-m-d" }}</td>
+                            <td>
+                                {% if cert.certificate_type == 'quran_part' %}
+                                    الجزء {{ cert.quran_part }}
+                                {% elif cert.certificate_type == 'quran_full' %}
+                                    القرآن الكريم كاملًا
+                                {% elif cert.certificate_type == 'tajweed' %}
+                                    شهادة في أحكام التجويد
+                                {% elif cert.certificate_type == 'fiqh' %}
+                                    شهادة في فقه العبادات
+                                {% else %}
+                                    {{ cert.description|default:"—" }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if cert.grade %}
+                                <span class="badge {% if cert.grade >= 90 %}bg-success{% elif cert.grade >= 70 %}bg-info{% elif cert.grade >= 50 %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ cert.grade }}%
+                                </span>
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                            <td>{{ cert.teacher.full_name }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{% url 'certificate_form' student_id=student.id certificate_id=cert.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'certificate_confirm_delete' pk=cert.id %}" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </a>
+                                    <a href="{% url 'certificate_print' pk=cert.id %}" class="btn btn-sm btn-outline-success" target="_blank">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle ml-2"></i>
+                لا توجد شهادات مسجلة لهذا الطالب حتى الآن.
+                <a href="{% url 'certificate_form' student_id=student.id %}" class="alert-link">إضافة شهادة جديدة</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- إحصائيات الشهادات -->
+    {% if certificates %}
+    <div class="card shadow">
+        <div class="card-header bg-light">
+            <h4 class="card-title">إحصائيات الشهادات</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="certificateTypesChart" height="250"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <canvas id="certificateTimelineChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if certificates %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // رسم بياني لأنواع الشهادات
+        var typesCtx = document.getElementById('certificateTypesChart').getContext('2d');
+        var certificateTypesChart = new Chart(typesCtx, {
+            type: 'pie',
+            data: {
+                labels: {{ certificate_types|safe }},
+                datasets: [{
+                    data: {{ certificate_counts|safe }},
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    title: {
+                        display: true,
+                        text: 'توزيع أنواع الشهادات'
+                    }
+                }
+            }
+        });
+        
+        // رسم بياني للجدول الزمني
+        var timelineCtx = document.getElementById('certificateTimelineChart').getContext('2d');
+        var certificateTimelineChart = new Chart(timelineCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ timeline_dates|safe }},
+                datasets: [{
+                    label: 'عدد الشهادات',
+                    data: {{ timeline_counts|safe }},
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'الشهادات عبر الزمن'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %} 

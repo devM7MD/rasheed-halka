@@ -1,0 +1,484 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}إنشاء خطط الحفظ{% endblock %}
+
+{% block content %}
+<div class="container rtl">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="card-title">إنشاء خطط حفظ جديدة</h2>
+        </div>
+        
+        <div class="card-body">
+            {% if messages %}
+            <div class="alerts">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="alert alert-info mb-4">
+                <h5><i class="fas fa-info-circle ml-2"></i> ملاحظات هامة</h5>
+                <hr>
+                <ul>
+                    <li>للطلاب الذين يبدأون الحفظ لأول مرة (سورة الفاتحة أو أول البقرة)، لن تظهر مهام المراجعة في الخطة حتى يتقدم الطالب في الحفظ.</li>
+                    <li>مهام المراجعة تُضاف تلقائياً للطلاب الذين حفظوا سابقاً.</li>
+                    <li>يمكنك تعديل الخطة لاحقاً لإضافة مهام مراجعة محددة إذا لزم الأمر.</li>
+                    <li>يمكنك الآن تحديد إعدادات المراجعة المخصصة عند إنشاء الخطة.</li>
+                </ul>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <h4 class="alert-heading">الرجاء تصحيح الأخطاء التالية:</h4>
+                    {{ form.errors }}
+                </div>
+                {% endif %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header bg-light">
+                                <h5 class="card-title mb-0">إعدادات الخطة</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="week_start" class="form-label">تاريخ بداية الأسبوع:</label>
+                                    <input type="date" id="week_start" name="week_start" class="form-control" value="{{ today|date:'Y-m-d' }}" required>
+                                    <small class="form-text text-muted">اختر يوم الاثنين في بداية الأسبوع</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="target_ayahs" class="form-label">عدد الآيات المستهدف يومياً:</label>
+                                    <input type="number" id="target_ayahs" name="target_ayahs" class="form-control" value="5" min="1" max="20" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">إعدادات المراجعة:</label>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="checkbox" id="include_review" name="include_review" value="1" checked>
+                                        <label class="form-check-label" for="include_review">
+                                            تضمين مهام المراجعة تلقائياً
+                                        </label>
+                                    </div>
+                                    <div id="review_options" class="border rounded p-3">
+                                        <div class="form-text mb-2">
+                                            <small>عند تحديد المراجعة، حدد المقطع الذي سيراجعه الطالب لكل يوم:</small>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label class="small">سورة المراجعة:</label>
+                                                <select name="review_surah" class="form-control form-control-sm">
+                                                    <option value="0">نفس سورة الحفظ الجديد</option>
+                                                    <option value="1">1 - الفاتحة</option>
+                                                    <option value="2">2 - البقرة</option>
+                                                    <option value="3">3 - آل عمران</option>
+                                                    <option value="4">4 - النساء</option>
+                                                    <option value="5">5 - المائدة</option>
+                                                    <option value="6">6 - الأنعام</option>
+                                                    <option value="7">7 - الأعراف</option>
+                                                    <option value="8">8 - الأنفال</option>
+                                                    <option value="9">9 - التوبة</option>
+                                                    <option value="10">10 - يونس</option>
+                                                    <option value="11">11 - هود</option>
+                                                    <option value="12">12 - يوسف</option>
+                                                    <option value="13">13 - الرعد</option>
+                                                    <option value="14">14 - إبراهيم</option>
+                                                    <option value="15">15 - الحجر</option>
+                                                    <option value="16">16 - النحل</option>
+                                                    <option value="17">17 - الإسراء</option>
+                                                    <option value="18">18 - الكهف</option>
+                                                    <option value="19">19 - مريم</option>
+                                                    <option value="20">20 - طه</option>
+                                                    <option value="21">21 - الأنبياء</option>
+                                                    <option value="22">22 - الحج</option>
+                                                    <option value="23">23 - المؤمنون</option>
+                                                    <option value="24">24 - النور</option>
+                                                    <option value="25">25 - الفرقان</option>
+                                                    <option value="26">26 - الشعراء</option>
+                                                    <option value="27">27 - النمل</option>
+                                                    <option value="28">28 - القصص</option>
+                                                    <option value="29">29 - العنكبوت</option>
+                                                    <option value="30">30 - الروم</option>
+                                                    <option value="31">31 - لقمان</option>
+                                                    <option value="32">32 - السجدة</option>
+                                                    <option value="33">33 - الأحزاب</option>
+                                                    <option value="34">34 - سبأ</option>
+                                                    <option value="35">35 - فاطر</option>
+                                                    <option value="36">36 - يس</option>
+                                                    <option value="37">37 - الصافات</option>
+                                                    <option value="38">38 - ص</option>
+                                                    <option value="39">39 - الزمر</option>
+                                                    <option value="40">40 - غافر</option>
+                                                    <option value="41">41 - فصلت</option>
+                                                    <option value="42">42 - الشورى</option>
+                                                    <option value="43">43 - الزخرف</option>
+                                                    <option value="44">44 - الدخان</option>
+                                                    <option value="45">45 - الجاثية</option>
+                                                    <option value="46">46 - الأحقاف</option>
+                                                    <option value="47">47 - محمد</option>
+                                                    <option value="48">48 - الفتح</option>
+                                                    <option value="49">49 - الحجرات</option>
+                                                    <option value="50">50 - ق</option>
+                                                    <option value="51">51 - الذاريات</option>
+                                                    <option value="52">52 - الطور</option>
+                                                    <option value="53">53 - النجم</option>
+                                                    <option value="54">54 - القمر</option>
+                                                    <option value="55">55 - الرحمن</option>
+                                                    <option value="56">56 - الواقعة</option>
+                                                    <option value="57">57 - الحديد</option>
+                                                    <option value="58">58 - المجادلة</option>
+                                                    <option value="59">59 - الحشر</option>
+                                                    <option value="60">60 - الممتحنة</option>
+                                                    <option value="61">61 - الصف</option>
+                                                    <option value="62">62 - الجمعة</option>
+                                                    <option value="63">63 - المنافقون</option>
+                                                    <option value="64">64 - التغابن</option>
+                                                    <option value="65">65 - الطلاق</option>
+                                                    <option value="66">66 - التحريم</option>
+                                                    <option value="67">67 - الملك</option>
+                                                    <option value="68">68 - القلم</option>
+                                                    <option value="69">69 - الحاقة</option>
+                                                    <option value="70">70 - المعارج</option>
+                                                    <option value="71">71 - نوح</option>
+                                                    <option value="72">72 - الجن</option>
+                                                    <option value="73">73 - المزمل</option>
+                                                    <option value="74">74 - المدثر</option>
+                                                    <option value="75">75 - القيامة</option>
+                                                    <option value="76">76 - الإنسان</option>
+                                                    <option value="77">77 - المرسلات</option>
+                                                    <option value="78">78 - النبأ</option>
+                                                    <option value="79">79 - النازعات</option>
+                                                    <option value="80">80 - عبس</option>
+                                                    <option value="81">81 - التكوير</option>
+                                                    <option value="82">82 - الانفطار</option>
+                                                    <option value="83">83 - المطففين</option>
+                                                    <option value="84">84 - الانشقاق</option>
+                                                    <option value="85">85 - البروج</option>
+                                                    <option value="86">86 - الطارق</option>
+                                                    <option value="87">87 - الأعلى</option>
+                                                    <option value="88">88 - الغاشية</option>
+                                                    <option value="89">89 - الفجر</option>
+                                                    <option value="90">90 - البلد</option>
+                                                    <option value="91">91 - الشمس</option>
+                                                    <option value="92">92 - الليل</option>
+                                                    <option value="93">93 - الضحى</option>
+                                                    <option value="94">94 - الشرح</option>
+                                                    <option value="95">95 - التين</option>
+                                                    <option value="96">96 - العلق</option>
+                                                    <option value="97">97 - القدر</option>
+                                                    <option value="98">98 - البينة</option>
+                                                    <option value="99">99 - الزلزلة</option>
+                                                    <option value="100">100 - العاديات</option>
+                                                    <option value="101">101 - القارعة</option>
+                                                    <option value="102">102 - التكاثر</option>
+                                                    <option value="103">103 - العصر</option>
+                                                    <option value="104">104 - الهمزة</option>
+                                                    <option value="105">105 - الفيل</option>
+                                                    <option value="106">106 - قريش</option>
+                                                    <option value="107">107 - الماعون</option>
+                                                    <option value="108">108 - الكوثر</option>
+                                                    <option value="109">109 - الكافرون</option>
+                                                    <option value="110">110 - النصر</option>
+                                                    <option value="111">111 - المسد</option>
+                                                    <option value="112">112 - الإخلاص</option>
+                                                    <option value="113">113 - الفلق</option>
+                                                    <option value="114">114 - الناس</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="small">عدد الآيات للمراجعة:</label>
+                                                <input type="number" name="review_ayah_count" class="form-control form-control-sm" value="10" min="1" max="30">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-light d-flex justify-content-between">
+                                <h5 class="card-title mb-0">الطلاب</h5>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="select_all">
+                                    <label class="form-check-label" for="select_all">
+                                        تحديد الكل
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                                {% for student in students %}
+                                <div class="form-check mb-3 student-row">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <input class="form-check-input student-checkbox me-2" type="checkbox" value="{{ student.id }}" id="student_{{ student.id }}" name="students[]">
+                                        <label class="form-check-label" for="student_{{ student.id }}">
+                                            {{ student.full_name }}
+                                            {% if student.status == 'inactive' %}
+                                            <span class="badge bg-warning">غير نشط</span>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    <div class="row student-details" id="details_{{ student.id }}" style="display: none;">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="small">السورة:</label>
+                                                <select name="surah_{{ student.id }}" class="form-control form-control-sm">
+                                                    <option value="1">1 - الفاتحة</option>
+                                                    <option value="2">2 - البقرة</option>
+                                                    <option value="3">3 - آل عمران</option>
+                                                    <option value="4">4 - النساء</option>
+                                                    <option value="5">5 - المائدة</option>
+                                                    <option value="6">6 - الأنعام</option>
+                                                    <option value="7">7 - الأعراف</option>
+                                                    <option value="8">8 - الأنفال</option>
+                                                    <option value="9">9 - التوبة</option>
+                                                    <option value="10">10 - يونس</option>
+                                                    <option value="11">11 - هود</option>
+                                                    <option value="12">12 - يوسف</option>
+                                                    <option value="13">13 - الرعد</option>
+                                                    <option value="14">14 - إبراهيم</option>
+                                                    <option value="15">15 - الحجر</option>
+                                                    <option value="16">16 - النحل</option>
+                                                    <option value="17">17 - الإسراء</option>
+                                                    <option value="18">18 - الكهف</option>
+                                                    <option value="19">19 - مريم</option>
+                                                    <option value="20">20 - طه</option>
+                                                    <option value="21">21 - الأنبياء</option>
+                                                    <option value="22">22 - الحج</option>
+                                                    <option value="23">23 - المؤمنون</option>
+                                                    <option value="24">24 - النور</option>
+                                                    <option value="25">25 - الفرقان</option>
+                                                    <option value="26">26 - الشعراء</option>
+                                                    <option value="27">27 - النمل</option>
+                                                    <option value="28">28 - القصص</option>
+                                                    <option value="29">29 - العنكبوت</option>
+                                                    <option value="30">30 - الروم</option>
+                                                    <option value="31">31 - لقمان</option>
+                                                    <option value="32">32 - السجدة</option>
+                                                    <option value="33">33 - الأحزاب</option>
+                                                    <option value="34">34 - سبأ</option>
+                                                    <option value="35">35 - فاطر</option>
+                                                    <option value="36">36 - يس</option>
+                                                    <option value="37">37 - الصافات</option>
+                                                    <option value="38">38 - ص</option>
+                                                    <option value="39">39 - الزمر</option>
+                                                    <option value="40">40 - غافر</option>
+                                                    <option value="41">41 - فصلت</option>
+                                                    <option value="42">42 - الشورى</option>
+                                                    <option value="43">43 - الزخرف</option>
+                                                    <option value="44">44 - الدخان</option>
+                                                    <option value="45">45 - الجاثية</option>
+                                                    <option value="46">46 - الأحقاف</option>
+                                                    <option value="47">47 - محمد</option>
+                                                    <option value="48">48 - الفتح</option>
+                                                    <option value="49">49 - الحجرات</option>
+                                                    <option value="50">50 - ق</option>
+                                                    <option value="51">51 - الذاريات</option>
+                                                    <option value="52">52 - الطور</option>
+                                                    <option value="53">53 - النجم</option>
+                                                    <option value="54">54 - القمر</option>
+                                                    <option value="55">55 - الرحمن</option>
+                                                    <option value="56">56 - الواقعة</option>
+                                                    <option value="57">57 - الحديد</option>
+                                                    <option value="58">58 - المجادلة</option>
+                                                    <option value="59">59 - الحشر</option>
+                                                    <option value="60">60 - الممتحنة</option>
+                                                    <option value="61">61 - الصف</option>
+                                                    <option value="62">62 - الجمعة</option>
+                                                    <option value="63">63 - المنافقون</option>
+                                                    <option value="64">64 - التغابن</option>
+                                                    <option value="65">65 - الطلاق</option>
+                                                    <option value="66">66 - التحريم</option>
+                                                    <option value="67">67 - الملك</option>
+                                                    <option value="68">68 - القلم</option>
+                                                    <option value="69">69 - الحاقة</option>
+                                                    <option value="70">70 - المعارج</option>
+                                                    <option value="71">71 - نوح</option>
+                                                    <option value="72">72 - الجن</option>
+                                                    <option value="73">73 - المزمل</option>
+                                                    <option value="74">74 - المدثر</option>
+                                                    <option value="75">75 - القيامة</option>
+                                                    <option value="76">76 - الإنسان</option>
+                                                    <option value="77">77 - المرسلات</option>
+                                                    <option value="78">78 - النبأ</option>
+                                                    <option value="79">79 - النازعات</option>
+                                                    <option value="80">80 - عبس</option>
+                                                    <option value="81">81 - التكوير</option>
+                                                    <option value="82">82 - الانفطار</option>
+                                                    <option value="83">83 - المطففين</option>
+                                                    <option value="84">84 - الانشقاق</option>
+                                                    <option value="85">85 - البروج</option>
+                                                    <option value="86">86 - الطارق</option>
+                                                    <option value="87">87 - الأعلى</option>
+                                                    <option value="88">88 - الغاشية</option>
+                                                    <option value="89">89 - الفجر</option>
+                                                    <option value="90">90 - البلد</option>
+                                                    <option value="91">91 - الشمس</option>
+                                                    <option value="92">92 - الليل</option>
+                                                    <option value="93">93 - الضحى</option>
+                                                    <option value="94">94 - الشرح</option>
+                                                    <option value="95">95 - التين</option>
+                                                    <option value="96">96 - العلق</option>
+                                                    <option value="97">97 - القدر</option>
+                                                    <option value="98">98 - البينة</option>
+                                                    <option value="99">99 - الزلزلة</option>
+                                                    <option value="100">100 - العاديات</option>
+                                                    <option value="101">101 - القارعة</option>
+                                                    <option value="102">102 - التكاثر</option>
+                                                    <option value="103">103 - العصر</option>
+                                                    <option value="104">104 - الهمزة</option>
+                                                    <option value="105">105 - الفيل</option>
+                                                    <option value="106">106 - قريش</option>
+                                                    <option value="107">107 - الماعون</option>
+                                                    <option value="108">108 - الكوثر</option>
+                                                    <option value="109">109 - الكافرون</option>
+                                                    <option value="110">110 - النصر</option>
+                                                    <option value="111">111 - المسد</option>
+                                                    <option value="112">112 - الإخلاص</option>
+                                                    <option value="113">113 - الفلق</option>
+                                                    <option value="114">114 - الناس</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="small">الآية:</label>
+                                                <input type="number" name="ayah_{{ student.id }}" class="form-control form-control-sm" value="1" min="1" max="286" id="ayah_{{ student.id }}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'plan_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-right ml-1"></i> العودة
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-plus-circle ml-1"></i> إنشاء الخطط
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Review options visibility toggle
+        var includeReviewCheckbox = document.getElementById('include_review');
+        var reviewOptionsDiv = document.getElementById('review_options');
+        
+        function toggleReviewOptions() {
+            if (includeReviewCheckbox.checked) {
+                reviewOptionsDiv.style.display = 'block';
+            } else {
+                reviewOptionsDiv.style.display = 'none';
+            }
+        }
+        
+        // Set initial state
+        toggleReviewOptions();
+        
+        // Add event listener
+        includeReviewCheckbox.addEventListener('change', toggleReviewOptions);
+        
+        // Student selection logic
+        var selectAllCheckbox = document.getElementById('select_all');
+        var studentCheckboxes = document.querySelectorAll('.student-checkbox');
+        
+        // قاموس أطوال السور
+        const surahLengths = {
+            1: 7, 2: 286, 3: 200, 4: 176, 5: 120, 6: 165, 7: 206, 8: 75, 9: 129, 10: 109,
+            11: 123, 12: 111, 13: 43, 14: 52, 15: 99, 16: 128, 17: 111, 18: 110, 19: 98, 20: 135,
+            21: 112, 22: 78, 23: 118, 24: 64, 25: 77, 26: 227, 27: 93, 28: 88, 29: 69, 30: 60,
+            31: 34, 32: 30, 33: 73, 34: 54, 35: 45, 36: 83, 37: 182, 38: 88, 39: 75, 40: 85,
+            41: 54, 42: 53, 43: 89, 44: 59, 45: 37, 46: 35, 47: 38, 48: 29, 49: 18, 50: 45,
+            51: 60, 52: 49, 53: 62, 54: 55, 55: 78, 56: 96, 57: 29, 58: 22, 59: 24, 60: 13,
+            61: 14, 62: 11, 63: 11, 64: 18, 65: 12, 66: 12, 67: 30, 68: 52, 69: 52, 70: 44,
+            71: 28, 72: 28, 73: 20, 74: 56, 75: 40, 76: 31, 77: 50, 78: 40, 79: 46, 80: 42,
+            81: 29, 82: 19, 83: 36, 84: 25, 85: 22, 86: 17, 87: 19, 88: 26, 89: 30, 90: 20,
+            91: 15, 92: 21, 93: 11, 94: 8, 95: 8, 96: 19, 97: 5, 98: 8, 99: 8, 100: 11,
+            101: 11, 102: 8, 103: 3, 104: 9, 105: 5, 106: 4, 107: 7, 108: 3, 109: 6, 110: 3,
+            111: 5, 112: 4, 113: 5, 114: 6
+        };
+        
+        // تحديث الحد الأقصى للآيات عند تغيير السورة
+        document.querySelectorAll('[name^="surah_"]').forEach(function(select) {
+            const studentId = select.name.split('_')[1];
+            const ayahInput = document.getElementById(`ayah_${studentId}`);
+            
+            select.addEventListener('change', function() {
+                const surahNum = parseInt(this.value);
+                const maxAyah = surahLengths[surahNum] || 286;
+                ayahInput.max = maxAyah;
+                
+                // إذا كانت الآية الحالية أكبر من الحد الأقصى، قم بضبطها
+                if (parseInt(ayahInput.value) > maxAyah) {
+                    ayahInput.value = maxAyah;
+                }
+            });
+        });
+        
+        // إظهار/إخفاء تفاصيل الطالب عند تحديد الصندوق
+        studentCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                var studentId = checkbox.value;
+                var detailsRow = document.getElementById('details_' + studentId);
+                if (checkbox.checked) {
+                    detailsRow.style.display = 'flex';
+                } else {
+                    detailsRow.style.display = 'none';
+                }
+            });
+        });
+        
+        // Add event listener to "Select All" checkbox
+        selectAllCheckbox.addEventListener('change', function() {
+            studentCheckboxes.forEach(function(checkbox) {
+                checkbox.checked = selectAllCheckbox.checked;
+                // تحديث ظهور حقول التفاصيل
+                var studentId = checkbox.value;
+                var detailsRow = document.getElementById('details_' + studentId);
+                if (checkbox.checked) {
+                    detailsRow.style.display = 'flex';
+                } else {
+                    detailsRow.style.display = 'none';
+                }
+            });
+        });
+        
+        // Add event listeners to individual checkboxes
+        studentCheckboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                // Check if all individual checkboxes are checked
+                var allChecked = true;
+                studentCheckboxes.forEach(function(cb) {
+                    if (!cb.checked) {
+                        allChecked = false;
+                    }
+                });
+                
+                // Update "Select All" checkbox
+                selectAllCheckbox.checked = allChecked;
+            });
+        });
+    });
+</script>
+{% endblock %}
+
+{% endblock %} 
