@@ -28,7 +28,6 @@ DEBUG = True
 
 ROOT_URLCONF = 'qhms.urls'
 ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
-WSGI_APPLICATION = 'qhms.wsgi.app'
 
 # Application definition
 
@@ -78,7 +77,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'qhms.wsgi.application'
+WSGI_APPLICATION = 'qhms.wsgi.app'
 
 
 # Database
