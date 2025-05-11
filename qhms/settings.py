@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-&ls@4r%=mevimhh6+@&@gd1fd!-p%88%bnece*p$s8ixtk8%wm
 DEBUG = False
 
 ALLOWED_HOSTS = ['127.0.0.1', '.vercel.app']
-
+WSGI_APPLICATION = 'qhms.wsgi.app'
 
 # Application definition
 
